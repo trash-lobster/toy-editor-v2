@@ -3,6 +3,7 @@ import { installHeader } from "./header/install";
 import { createLayoutState } from "./state";
 import { installInspector } from "./inspector/install";
 import { installEffectsEditor } from "./effects-editor/install";
+import { installVideoEditor } from "./video-editor/install";
 
 // Create state outside component so it persists across renders
 const layoutState = createLayoutState();
@@ -17,6 +18,7 @@ export function Skeleton() {
     const { Header } = installHeader(layoutPresenter.toggleLeft, layoutPresenter.toggleRight);
     const { Inspector } = installInspector();
     const { EffectEditor } = installEffectsEditor();
+    const { VideoEditor } = installVideoEditor();
 
     const { left, right } = useSnapshot(layoutState);
 
@@ -50,7 +52,7 @@ export function Skeleton() {
 
                     {/* SceneEditor Area - Center - Always present */}
                     <div className="h-full bg-filmforge-background overflow-hidden">
-                        {/* {children} */}
+                        <VideoEditor />
                     </div>
 
                     {/* Right Panel - Properties */}

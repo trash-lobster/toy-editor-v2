@@ -8,3 +8,45 @@
 .card {
   padding: 2em;
 }
+
+.video-preview-area {
+    height: 65%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #000000;
+    border-bottom: 0.5px solid var(--border);
+    transition: height 0.3s ease;
+}
+
+.scene-editor-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    background: var(--background);
+    display: flex;
+    flex-direction: column;
+}
+
+/* Video Playback Panel - 4% height */
+.video-playback-panel {
+    height: 4%;
+    background: var(--background);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 2rem;
+    position: relative;
+}
+
+.video-playback-panel > div:first-child {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.video-playback-panel > div:last-child {
+    position: absolute;
+    right: 2rem;
+}
