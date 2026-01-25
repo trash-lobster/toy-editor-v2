@@ -3,7 +3,12 @@ import { VideoPreviewArea as InternalVideoPreviewArea } from "./video-preview-ar
 import { createVideoPlayerState } from "./state";
 import type { SceneEditorCell } from "../../canvas/state";
 
-export function installVideoPreviewArea() {
+export function installVideoPreviewArea(
+    handleFileUpload: (
+        e: React.ChangeEvent<HTMLInputElement>, 
+        fileInputRef: React.RefObject<HTMLInputElement | null>
+    ) => Promise<{status: string} | undefined>
+) {
     const videoPlayerState = createVideoPlayerState();
     
     const setCurrentClip = (clip: SceneEditorCell | null) => {
@@ -23,6 +28,7 @@ export function installVideoPreviewArea() {
         
         return (
             <InternalVideoPreviewArea 
+                handleFileUpload={handleFileUpload}
                 // currentClip={currentClip}
                 // seekTime={seekTime}
                 // mediaUrl={mediaUrl}

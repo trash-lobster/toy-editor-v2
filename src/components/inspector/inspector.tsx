@@ -1,9 +1,14 @@
 import { Upload } from "lucide-react";
 import type { InspectorTab } from "./state"
+import { useRef } from "react";
 
 interface InspectorProps {
     currentTab: InspectorTab,
     setTab: (tab: InspectorTab) => void;
+    handleFileUpload: (e: React.ChangeEvent<HTMLInputElement>, fileInputRef: React.RefObject<HTMLInputElement | null>) => 
+        Promise<{
+            status: string;
+        } | undefined>;
 }
 
 const tabs: { id: InspectorTab; label: string }[] = [
@@ -12,7 +17,9 @@ const tabs: { id: InspectorTab; label: string }[] = [
     { id: 'text', label: 'Text' }
 ];
 
-export function Inspector({currentTab, setTab} : InspectorProps) {
+export function Inspector({currentTab, setTab, handleFileUpload} : InspectorProps) {
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    
     return (
         <div>
             <div className='flex gap-4 items-middle justify-center py-4 border-b'>
@@ -31,15 +38,18 @@ export function Inspector({currentTab, setTab} : InspectorProps) {
                     currentTab === 'media' ? 
                         <div className="mx-4">
                             <div className="space-y-2">
-                                {/* <input
+                                <input
                                     ref={fileInputRef}
                                     type="file"
                                     accept="video/*,image/*"
                                     multiple
-                                    onChange={handleFileSelect}
+                                    onChange={async (e) => {
+                                        const response = await handleFileUpload(e, fileInputRef);
+                                        console.log(response);
+                                    }}
                                     className="hidden"
                                     id="media-upload"
-                                /> */}
+                                />
                                 <label
                                     htmlFor="media-upload"
                                     className="flex items-center justify-center gap-2 px-4 py-3 bg-gray-100 hover:bg-gray-200 text-filmforge-text cursor-pointer transition-colors border border-filmforge-border-light rounded"

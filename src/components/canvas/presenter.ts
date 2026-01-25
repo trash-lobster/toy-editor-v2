@@ -8,15 +8,15 @@ export class CanvasPresenter {
         this.state = state;
     }
 
-    getCanvas() {
+    getCanvas = () => {
         return this.state;
     }
 
-    updateCanvas(newState: CanvasState) {
+    updateCanvas = (newState: CanvasState) => {
         this.state = proxy(newState);
     }
 
-    getSceneEditor() {
+    getSceneEditor = () => {
         return this.state.sceneEditor || { 
             cells: [], 
             aspectRatio: '16:9', 
@@ -24,16 +24,100 @@ export class CanvasPresenter {
         };
     }
 
-    getNodes() {
+    getNodes = () => {
         return this.state.nodes;
     }
 
-    getTrack(trackId: number) {
+    getTrack = (trackId: number) => {
         if (!this.state.sceneEditor) return;
         return this.state.sceneEditor.tracks.filter(track => track.id === trackId)[0];
     }
 
-    private calculateTrackEnd(trackId: number) {
+    private getEffectiveDuration = (cell: SceneEditorCell): number => {
+        const originalDuration = cell.duration || 0;
+        const trimStart = cell.trimStart || 0;
+        const trimEnd = cell.trimEnd || 0;
+        return Math.max(0.1, originalDuration - trimStart - trimEnd);
+    }
+
+    getCellsAtGlobalTime = (clampedTime: number) => {
+        if (!this.state.sceneEditor) return;
+        const clips = [];
+
+        for (let i = 0; i < this.state.sceneEditor.tracks.length; i++) {
+            const cells = this.state.sceneEditor.tracks[i].cells;
+
+            for (let j = 0; j < cells.length; j++) {
+                const cell = cells[j];
+                const effectiveDuration = this.getEffectiveDuration(cell);
+                const startTime = cell.startTime || 0;
+                const endTime = startTime + effectiveDuration;
+            
+                const epsilon = 0.001;
+                const isAtStart = Math.abs(clampedTime - startTime) < epsilon;
+                const isWithinClip = clampedTime >= startTime && clampedTime < endTime;
+
+                if (isAtStart) {
+                    // At or very close to clip start time (handles floating-point precision)
+                    clips.push( 
+                        {
+                            clip: cell,
+                            clipTime: 0,
+                            clipIndex: i,
+                            clipStartTime: startTime,
+                            clipEndTime: endTime
+                        }
+                    );
+                } else if (isWithinClip) {
+                    // Normal case: time is strictly within clip boundaries
+                    const clipTime = clampedTime - startTime;
+
+                    clips.push(
+                        {
+                            clip: cell,
+                            clipTime,
+                            clipIndex: i,
+                            clipStartTime: startTime,
+                            clipEndTime: endTime
+                        }
+                    );
+                }
+            }
+
+            // check if we are adding that last clip of the track
+            // if (clampedTime >= totalDuration && cells.length > 0) {
+            //     const lastClip = cells[cells.length - 1];
+            //     const lastClipStartTime = lastClip.startTime || 0;
+            //     const lastClipDuration = this.getEffectiveDuration(lastClip); // ✅ Use effective duration
+    
+            //     return {
+            //         clip: lastClip,
+            //         clipTime: lastClipDuration, // At the very end of the last clip
+            //         clipIndex: cells.length - 1,
+            //         clipStartTime: lastClipStartTime,
+            //         clipEndTime: lastClipStartTime + lastClipDuration
+            //     };
+            // }
+        }
+        return clips;
+    }
+
+    // clipPositionToGlobalTime(clipIndex: number, clipTime: number): number {
+    //     if (clipIndex < 0 || clipIndex >= this.cells.length) {
+    //         return 0;
+    //     }
+
+    //     const cell = this.cells[clipIndex];
+    //     const startTime = cell.startTime || 0;
+    //     const effectiveDuration = this.getEffectiveDuration(cell); // ✅ Use effective duration
+
+    //     // Clamp clip time to valid range within this clip
+    //     const clampedClipTime = Math.max(0, Math.min(clipTime, effectiveDuration));
+
+    //     return startTime + clampedClipTime;
+    // }
+
+    private calculateTrackEnd = (trackId: number) => {
         const track = this.getTrack(trackId);
         if (!track || !track.cells || track.cells.length === 0) return 0;
         
@@ -51,7 +135,7 @@ export class CanvasPresenter {
         return endTime;
     }
 
-    deleteTrack(trackId: number) {
+    deleteTrack = (trackId: number) => {
         if (!this.state.sceneEditor) return;
         
         const trackIndex = this.state.sceneEditor.tracks.findIndex(track => track.id === trackId);
@@ -60,7 +144,7 @@ export class CanvasPresenter {
         this.state.sceneEditor.tracks.splice(trackIndex, 1);
     }
 
-    private deleteCellFromTrack(trackId: number, mediaNodeId: string) {
+    private deleteCellFromTrack = (trackId: number, mediaNodeId: string) => {
         if (!this.state.sceneEditor) return;
 
         const trackIndex = this.state.sceneEditor.tracks.findIndex(track => track.id === trackId);
@@ -72,7 +156,7 @@ export class CanvasPresenter {
         this.state.sceneEditor.tracks[trackIndex].cells.splice(cellIndex, 1);
     }
 
-    async uploadMedia(file: File) {
+    uploadMedia = async (file: File) => {
         const nodeId = `node-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
         const blobUrl = URL.createObjectURL(file);
 
@@ -130,7 +214,7 @@ export class CanvasPresenter {
         return nodeId;
     }
 
-    addMediaToTimeLine(mediaNodeId: string, trackId: number = 0) {
+    addMediaToTimeline = (mediaNodeId: string, trackId: number = 0) => {
         const node = this.state.nodes.find(n => n.id === mediaNodeId);
         if (!node) return;
         
@@ -167,7 +251,32 @@ export class CanvasPresenter {
         cells.push(newCell);
     }
 
-    removeClipFromTimeline(clipId: string, trackId: number) {
+    handleFileUpload = async(e: React.ChangeEvent<HTMLInputElement>, fileInputRef: React.RefObject<HTMLInputElement | null>) => {
+        const files = e.target.files;
+        if (!files) return;
+
+        const response = {
+            status: 'failure'
+        }
+
+        for (let i = 0; i < files.length; i++) {
+            const file = files[i];
+            const mediaNodeId = await this.uploadMedia(file);
+            if (mediaNodeId) {
+                this.addMediaToTimeline(mediaNodeId);
+                console.log('Media node id:', mediaNodeId);
+                response.status = 'success';
+            }
+        }
+
+        if (fileInputRef.current) {
+            fileInputRef.current.value = '';
+        }
+
+        return response;
+    };
+
+    removeClipFromTimeline = (clipId: string, trackId: number) => {
         if (!this.state.sceneEditor) return;
         
         // Ensure that clip id is using the mediaNodeId
@@ -183,7 +292,7 @@ export class CanvasPresenter {
         this.state.sceneEditor.totalDuration = totalDuration;
     }
 
-    updateClip(clipId: string, updates: Partial<SceneEditorCell>, trackId: number) {
+    updateClip = (clipId: string, updates: Partial<SceneEditorCell>, trackId: number) => {
         if (!this.state.sceneEditor) return;
 
         const track = this.getTrack(trackId);
@@ -196,7 +305,7 @@ export class CanvasPresenter {
         }
     }
 
-    moveClip(clipId: string, newStartTime: number, trackId: number) {
+    moveClip = (clipId: string, newStartTime: number, trackId: number) => {
         if (!this.state.sceneEditor) return;
 
         const track = this.getTrack(trackId);

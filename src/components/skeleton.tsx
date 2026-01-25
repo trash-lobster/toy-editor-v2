@@ -4,6 +4,8 @@ import { createLayoutState } from "./state";
 import { installInspector } from "./inspector/install";
 import { installEffectsEditor } from "./effects-editor/install";
 import { installVideoEditor } from "./video-editor/install";
+import { createCanvasState } from "./canvas/state";
+import { CanvasPresenter } from "./canvas/presenter";
 
 // Create state outside component so it persists across renders
 const layoutState = createLayoutState();
@@ -11,14 +13,16 @@ const layoutState = createLayoutState();
 const layoutPresenter = {
     toggleLeft: () => layoutState.left = !layoutState.left,
     toggleRight: () => layoutState.right = !layoutState.right
-
 }
 
 export function Skeleton() {
+    const canvasState = createCanvasState();
+    const canvasPresenter = new CanvasPresenter(canvasState);
+
     const { Header } = installHeader(layoutPresenter.toggleLeft, layoutPresenter.toggleRight);
-    const { Inspector } = installInspector();
+    const { Inspector } = installInspector(canvasPresenter.handleFileUpload);
     const { EffectEditor } = installEffectsEditor();
-    const { VideoEditor } = installVideoEditor();
+    const { VideoEditor } = installVideoEditor(canvasPresenter.handleFileUpload);
 
     const { left, right } = useSnapshot(layoutState);
 

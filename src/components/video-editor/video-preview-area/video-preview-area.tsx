@@ -1,15 +1,25 @@
 import { Upload } from "lucide-react";
+import { useRef } from "react";
 
-export function VideoPreviewArea() {
+interface VideoPreviewProps {
+    handleFileUpload: (e: React.ChangeEvent<HTMLInputElement>, fileInputRef: React.RefObject<HTMLInputElement | null>) => 
+        Promise<{
+            status: string;
+        } | undefined>;
+}
+
+export function VideoPreviewArea({handleFileUpload}: VideoPreviewProps) {
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    
     return (
         <div className="video-preview-area">
             <div className="text-center text-filmforge-text-light text-white">
                 <input
-                    // ref={fileInputRef}
+                    ref={fileInputRef}
                     type="file"
                     accept="video/*,image/*"
                     multiple
-                    // onChange={handleFileUpload}
+                    onChange={(e) => handleFileUpload(e, fileInputRef)}
                     className="hidden"
                     id="video-preview-upload"
                 />
