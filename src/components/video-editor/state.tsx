@@ -1,3 +1,5 @@
+import { proxy } from "valtio";
+
 export class VirtualTimelineState {
     // only needs to know where in the time line it is 
     currentTime: number = 0;
@@ -6,4 +8,8 @@ export class VirtualTimelineState {
 
     masterClockRef: number | null = null;
     lastFrameTime: number = 0;
+}
+
+export function createVirtualTimelineState() {
+    return proxy(new VirtualTimelineState());
 }

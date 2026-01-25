@@ -22,7 +22,7 @@ export function Skeleton() {
     const { Header } = installHeader(layoutPresenter.toggleLeft, layoutPresenter.toggleRight);
     const { Inspector } = installInspector(canvasPresenter.handleFileUpload);
     const { EffectEditor } = installEffectsEditor();
-    const { VideoEditor } = installVideoEditor(canvasPresenter.handleFileUpload);
+    const { VideoEditor } = installVideoEditor(canvasState, canvasPresenter.handleFileUpload);
 
     const { left, right } = useSnapshot(layoutState);
 
