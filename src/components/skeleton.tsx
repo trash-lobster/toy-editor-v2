@@ -2,6 +2,7 @@ import { useSnapshot } from "valtio/react";
 import { installHeader } from "./header/install";
 import { createLayoutState } from "./state";
 import { installInspector } from "./inspector/install";
+import { installEffectsEditor } from "./effects-editor/install";
 
 // Create state outside component so it persists across renders
 const layoutState = createLayoutState();
@@ -15,6 +16,7 @@ const layoutPresenter = {
 export function Skeleton() {
     const { Header } = installHeader(layoutPresenter.toggleLeft, layoutPresenter.toggleRight);
     const { Inspector } = installInspector();
+    const { EffectEditor } = installEffectsEditor();
 
     const { left, right } = useSnapshot(layoutState);
 
@@ -54,7 +56,7 @@ export function Skeleton() {
                     {/* Right Panel - Properties */}
                     {right && (
                         <div className="h-full border-l border-filmforge-border-light bg-white flex flex-col">
-                            {/* <Editor /> */}
+                            <EffectEditor />
                         </div>
                     )}
                 </div>

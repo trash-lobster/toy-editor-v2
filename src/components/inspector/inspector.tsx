@@ -19,7 +19,7 @@ export function Inspector({currentTab, setTab} : InspectorProps) {
                 {tabs.map(tab => (
                     <button 
                         key={tab.id}
-                        className={`px-3 py-1 rounded hover:bg-gray-200 transition-colors ${currentTab === tab.id ? 'bg-gray-200' : ''}`}
+                        className={`px-3 py-1 rounded hover:bg-gray-200 transition-colors cursor-pointer ${currentTab === tab.id ? 'bg-gray-200' : ''}`}
                         onClick={() => setTab(tab.id)}
                     >
                         {tab.label}
