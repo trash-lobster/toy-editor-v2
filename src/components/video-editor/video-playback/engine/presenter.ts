@@ -2,26 +2,29 @@ import type { VirtualTimelineState } from "../../state";
 import type { VideoElementPoolPresenter } from "../video-element-pool/presenter";
 import type { CanvasCompositorPresenter } from "../canvas-compositor/presenter";
 import type { CanvasPresenter } from "../../../canvas/presenter";
+// import type { CanvasState } from "../../../canvas/state";
 
 /**
  * PlaybackEngine manages the video playback loop using requestAnimationFrame.
  * Coordinates VideoElementPool and CanvasCompositor to render multi-track video.
  */
 export class PlaybackEnginePresenter {
-    private virtualTimelineState: VirtualTimelineState;
-    private videoPool: VideoElementPoolPresenter;
-    private compositor: CanvasCompositorPresenter;
-    private canvasPresenter: CanvasPresenter;
-    
-    private rafId: number | null = null;
-    private lastFrameTime: number = 0;
+    // canvasState: CanvasState;
+    virtualTimelineState: VirtualTimelineState;
+    videoPool: VideoElementPoolPresenter;
+    compositor: CanvasCompositorPresenter;
+    canvasPresenter: CanvasPresenter;
+    rafId: number | null = null;
+    lastFrameTime: number = 0;
 
     constructor(
+        // canvasState: CanvasState,
         virtualTimelineState: VirtualTimelineState,
         videoPool: VideoElementPoolPresenter,
         compositor: CanvasCompositorPresenter,
         canvasPresenter: CanvasPresenter
     ) {
+        // this.canvasState = canvasState;
         this.virtualTimelineState = virtualTimelineState;
         this.videoPool = videoPool;
         this.compositor = compositor;
@@ -33,10 +36,18 @@ export class PlaybackEnginePresenter {
      * Updates VirtualTimelineState.isPlaying which triggers UI re-render.
      */
     play = (): void => {
-        if (this.virtualTimelineState.isPlaying) return;
+        console.log('play() called - initial value:', this.virtualTimelineState.isPlaying);
+    
+        if (this.virtualTimelineState.isPlaying) {
+            console.log('EARLY RETURN - already playing');
+            return;
+        }
         
-        // This assignment triggers React re-render via useSnapshot()
+        console.log('BEFORE isPlaying:', this.virtualTimelineState.isPlaying);
+    
         this.virtualTimelineState.isPlaying = true;
+    
+        console.log('AFTER isPlaying:', this.virtualTimelineState.isPlaying);
         
         // Initialize RAF loop
         this.lastFrameTime = performance.now();
@@ -65,8 +76,12 @@ export class PlaybackEnginePresenter {
     togglePlayback = (): void => {
         if (this.virtualTimelineState.isPlaying) {
             this.pause();
+            console.log('pausing');
         } else {
             this.play();
+            console.log('playing');
+            console.log(this.virtualTimelineState);
+            console.log(this.virtualTimelineState.isPlaying);
         }
     };
 
@@ -135,6 +150,7 @@ export class PlaybackEnginePresenter {
     skipForward = (seconds: number = 5): void => {
         const newTime = this.virtualTimelineState.currentTime + seconds;
         this.seek(newTime);
+        console.log('new time', newTime);
     };
 
     /**
@@ -143,6 +159,7 @@ export class PlaybackEnginePresenter {
     skipBackward = (seconds: number = 5): void => {
         const newTime = this.virtualTimelineState.currentTime - seconds;
         this.seek(newTime);
+        console.log('new time', newTime);
     };
 
     /**

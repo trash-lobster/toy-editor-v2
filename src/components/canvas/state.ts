@@ -51,9 +51,6 @@ export interface SceneEditorCell {
 export interface SceneEditor {
     tracks: MediaTrack[];
     aspectRatio: string; // Default "16:9"
-    // Timeline state
-    totalDuration?: number; // Calculated total duration
-    currentTime?: number; // Playhead position in seconds
     zoom?: number; // Zoom level (1.0 = normal)
 }
 
@@ -77,8 +74,6 @@ export class CanvasState {
         this.nodes = [];
         this.sceneEditor = {
             aspectRatio: '16:9',
-            totalDuration: 0,
-            currentTime: 0,
             zoom: 1.0,
             tracks: [ { id: 0, cells: [], } ],
         }

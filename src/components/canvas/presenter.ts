@@ -1,13 +1,16 @@
 import { proxy } from "valtio";
 import { CanvasState, NodeType, type MediaNode, type MediaNodeStatus, type SceneEditorCell } from "./state"
+import type { VirtualTimelineState } from "../video-editor/state";
 
 export const TRACK_LIMIT = 8;
 
 export class CanvasPresenter {
-    state: CanvasState
+    state: CanvasState;
+    timelineState: VirtualTimelineState;
 
-    constructor(state: CanvasState) {
+    constructor(state: CanvasState, timelineState: VirtualTimelineState) {
         this.state = state;
+        this.timelineState = timelineState;
     }
 
     getCanvas = () => {
@@ -28,6 +31,10 @@ export class CanvasPresenter {
 
     getNodes = () => {
         return this.state.nodes;
+    }
+    
+    hasNodes = () => {
+        return this.state.nodes && this.state.nodes.length > 0;
     }
 
     getTrack = (trackId: number) => {
@@ -265,7 +272,8 @@ export class CanvasPresenter {
         this.state.sceneEditor.tracks.forEach(track => {
             totalDuration = Math.max(totalDuration, this.calculateTrackEnd(track.id));
         });
-        this.state.sceneEditor.totalDuration = totalDuration;
+        // total duration is being updated here
+        this.timelineState.totalDuration = totalDuration;
     }
 
     handleFileUpload = async(e: React.ChangeEvent<HTMLInputElement>, fileInputRef: React.RefObject<HTMLInputElement | null>) => {
@@ -306,7 +314,7 @@ export class CanvasPresenter {
             totalDuration = Math.max(totalDuration, this.calculateTrackEnd(track.id));
         })
 
-        this.state.sceneEditor.totalDuration = totalDuration;
+        this.timelineState.totalDuration = totalDuration;
     }
 
     updateClip = (clipId: string, updates: Partial<SceneEditorCell>, trackId: number) => {
@@ -342,7 +350,7 @@ export class CanvasPresenter {
         this.state.sceneEditor.tracks.forEach(track => {
             totalDuration = Math.max(totalDuration, this.calculateTrackEnd(track.id));
         });
-        this.state.sceneEditor.totalDuration = totalDuration;
+        this.timelineState.totalDuration = totalDuration;
     };
 
     moveClipToTrack = (clipId: string, sourceTrackId: number, targetTrackId: number, newStartTime: number) => {
@@ -371,7 +379,7 @@ export class CanvasPresenter {
         this.state.sceneEditor.tracks.forEach(track => {
             totalDuration = Math.max(totalDuration, this.calculateTrackEnd(track.id));
         });
-        this.state.sceneEditor.totalDuration = totalDuration;
+        this.timelineState.totalDuration = totalDuration;
 
         return true;
     };

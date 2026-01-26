@@ -1,46 +1,28 @@
 import { useSnapshot } from "valtio/react";
 import { VideoPlayback as InternalVideoPlayback } from "./video-playback";
-import { createVideoPlaybackState } from "./state";
-import type { CanvasState } from "../../canvas/state";
+import type { VirtualTimelineState } from "../state";
+import type { PlaybackEnginePresenter } from "./engine/presenter";
 
-
-export function installVideoPlayback(canvasState: CanvasState) {
-    const videoPlaybackState = createVideoPlaybackState();
-    
-    const setIsPlaying = (playing: boolean) => {
-        videoPlaybackState.isPlaying = playing;
-    };
-    
-    const setGlobalTime = (time: number) => {
-        videoPlaybackState.globalTime = time;
-    };
-    
-    const setTotalDuration = (duration: number) => {
-        videoPlaybackState.totalDuration = duration;
-    };
-    
-    const togglePlayback = () => {
-        videoPlaybackState.isPlaying = !videoPlaybackState.isPlaying;
-    };
-
+export function installVideoPlayback(
+    playbackEngine: PlaybackEnginePresenter, // enables play back etc.
+    virtualTimelinestate: VirtualTimelineState,
+) {    
     const VideoPlayback = () => {
-        const { isPlaying, globalTime, } = useSnapshot(videoPlaybackState);
-        const { sceneEditor, } = useSnapshot(canvasState);
+        const { isPlaying, currentTime, totalDuration } = useSnapshot(virtualTimelinestate);
         
         return (
-            <InternalVideoPlayback 
+            <InternalVideoPlayback
                 isPlaying={isPlaying}
-                globalTime={globalTime}
-                totalDuration={sceneEditor?.totalDuration ?? 0}
+                globalTime={currentTime}
+                totalDuration={totalDuration}
+                onSkipNext={playbackEngine.skipForward}
+                onSkipPrevious={playbackEngine.skipBackward}
+                onTogglePlayback={playbackEngine.togglePlayback}
             />
         );
     };
     
     return {
-        VideoPlayback,
-        setIsPlaying,
-        setGlobalTime,
-        setTotalDuration,
-        togglePlayback,
+        VideoPlayback
     };
 }

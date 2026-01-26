@@ -7,6 +7,7 @@ import { installInspector } from './components/inspector/install';
 import { Skeleton } from './components/skeleton';
 import { createLayoutState } from './components/state';
 import { installVideoEditor } from './components/video-editor/install';
+import { createVirtualTimelineState } from './components/video-editor/state';
 
 export function installApp() {
     const layoutState = createLayoutState();
@@ -15,8 +16,10 @@ export function installApp() {
         toggleRight: () => layoutState.right = !layoutState.right
     }
 
+    const virtualTimelineState = createVirtualTimelineState();
+
     const canvasState = createCanvasState();
-    const canvasPresenter = new CanvasPresenter(canvasState);
+    const canvasPresenter = new CanvasPresenter(canvasState, virtualTimelineState);
 
     const { Header } = installHeader(layoutPresenter.toggleLeft, layoutPresenter.toggleRight);
     const { Inspector } = installInspector(canvasPresenter.handleFileUpload);
@@ -24,11 +27,10 @@ export function installApp() {
     const { VideoEditor } = installVideoEditor(
         canvasState,
         canvasPresenter,
+        virtualTimelineState,
         canvasPresenter.addTrack,
         canvasPresenter.handleFileUpload,
     );
-
-
 
     const App = () => {
         const { left, right } = useSnapshot(layoutState);

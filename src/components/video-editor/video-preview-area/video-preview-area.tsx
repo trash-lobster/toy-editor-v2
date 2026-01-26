@@ -1,15 +1,31 @@
 import { Upload } from "lucide-react";
 import { useRef } from "react";
+import type { Node } from "../../canvas/state";
 
 interface VideoPreviewProps {
+    nodes: readonly Node[],
     handleFileUpload: (e: React.ChangeEvent<HTMLInputElement>, fileInputRef: React.RefObject<HTMLInputElement | null>) => 
         Promise<{
             status: string;
         } | undefined>;
 }
 
-export function VideoPreviewArea({handleFileUpload}: VideoPreviewProps) {
+// we should switch whenever there are nodes added
+export function VideoPreviewArea({
+    handleFileUpload, 
+    nodes
+}: VideoPreviewProps) {
     const fileInputRef = useRef<HTMLInputElement>(null);
+
+    const canPlay = nodes && nodes.length > 0;
+
+    if (canPlay) {
+        return (
+            <div className="video-preview-area">
+
+            </div>
+        )
+    }
     
     return (
         <div className="video-preview-area">
