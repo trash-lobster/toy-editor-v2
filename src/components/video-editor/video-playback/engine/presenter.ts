@@ -2,7 +2,6 @@ import type { VirtualTimelineState } from "../../state";
 import type { VideoElementPoolPresenter } from "../video-element-pool/presenter";
 import type { CanvasCompositorPresenter } from "../canvas-compositor/presenter";
 import type { CanvasPresenter } from "../../../canvas/presenter";
-// import type { CanvasState } from "../../../canvas/state";
 
 /**
  * PlaybackEngine manages the video playback loop using requestAnimationFrame.
@@ -14,6 +13,7 @@ export class PlaybackEnginePresenter {
     videoPool: VideoElementPoolPresenter;
     compositor: CanvasCompositorPresenter;
     canvasPresenter: CanvasPresenter;
+
     rafId: number | null = null;
     lastFrameTime: number = 0;
 
@@ -36,19 +36,10 @@ export class PlaybackEnginePresenter {
      * Updates VirtualTimelineState.isPlaying which triggers UI re-render.
      */
     play = (): void => {
-        console.log('play() called - initial value:', this.virtualTimelineState.isPlaying);
-    
-        if (this.virtualTimelineState.isPlaying) {
-            console.log('EARLY RETURN - already playing');
-            return;
-        }
-        
-        console.log('BEFORE isPlaying:', this.virtualTimelineState.isPlaying);
-    
+        if (this.virtualTimelineState.isPlaying) return;
+
         this.virtualTimelineState.isPlaying = true;
-    
-        console.log('AFTER isPlaying:', this.virtualTimelineState.isPlaying);
-        
+       
         // Initialize RAF loop
         this.lastFrameTime = performance.now();
         this.tick(this.lastFrameTime);
@@ -80,8 +71,6 @@ export class PlaybackEnginePresenter {
         } else {
             this.play();
             console.log('playing');
-            console.log(this.virtualTimelineState);
-            console.log(this.virtualTimelineState.isPlaying);
         }
     };
 
@@ -157,9 +146,10 @@ export class PlaybackEnginePresenter {
      * Jump backward by a fixed amount (e.g., 5 seconds).
      */
     skipBackward = (seconds: number = 5): void => {
+        console.log(seconds);
         const newTime = this.virtualTimelineState.currentTime - seconds;
-        this.seek(newTime);
         console.log('new time', newTime);
+        this.seek(newTime);
     };
 
     /**
