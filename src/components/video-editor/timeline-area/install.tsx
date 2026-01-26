@@ -22,6 +22,7 @@ export function installTimelineArea(
 
         return (
             <div className='timeline-area' style={{ display: 'flex', overflow: 'hidden', height: '100%' }}>
+                {/* create inner container that can be scrolled across */}
                 <div style={{display: 'flex', overflow: 'auto', width: '100%', minHeight: '100%'}}>
                     <TimelineControls 
                         tracks={sceneEditor?.tracks.length} 
