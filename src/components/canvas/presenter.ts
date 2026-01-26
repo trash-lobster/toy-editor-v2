@@ -1,6 +1,8 @@
 import { proxy } from "valtio";
 import { CanvasState, NodeType, type MediaNode, type MediaNodeStatus, type SceneEditorCell } from "./state"
 
+export const TRACK_LIMIT = 8;
+
 export class CanvasPresenter {
     state: CanvasState
 
@@ -35,6 +37,7 @@ export class CanvasPresenter {
 
     addTrack = () => {
         if (!this.state.sceneEditor) return;
+        if (this.state.sceneEditor.tracks.length >= TRACK_LIMIT) return;
         const newId = this.state.sceneEditor.tracks.length;
         this.state.sceneEditor.tracks.push({ id: newId, cells: [], });
     }

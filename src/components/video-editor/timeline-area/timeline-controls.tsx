@@ -1,3 +1,5 @@
+import { TRACK_LIMIT } from "../../canvas/presenter";
+
 interface TimelineControlsProps {
     tracks?: number;
     trackHeight: number;
@@ -5,14 +7,17 @@ interface TimelineControlsProps {
 }
 
 export function TimelineControls({ tracks = 0, trackHeight, addTrack }: TimelineControlsProps) {
+    const isMaxTracks = tracks >= TRACK_LIMIT;
+    
     return (
         <div className="timeline-controls">
             <div>
                 <button
-                    className='timeline-add-track'
+                    className={`timeline-add-track ${isMaxTracks ? 'disabled' : ''}`}
                     onClick={addTrack}
+                    disabled={isMaxTracks}
                 >
-                    Add track
+                    {isMaxTracks ? 'Track limit reached' : 'Add track'}
                 </button>
                 <div style={{borderRight: '1px solid black'}}>
                     {/* Track labels */}

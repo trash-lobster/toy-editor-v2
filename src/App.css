@@ -101,6 +101,15 @@
     background-color: #dddddd;
 }
 
+.timeline-add-track.disabled {
+    cursor: not-allowed;
+    filter: brightness(90%);
+}
+
+.timeline-add-track.disabled:hover {
+    background-color: #ffffff;
+}
+
 .timeline-track-label {
     width: 100%;
     border-bottom: 1px solid #333;
