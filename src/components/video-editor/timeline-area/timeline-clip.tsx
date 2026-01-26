@@ -6,9 +6,14 @@ interface TimelineClipProps {
     node: MediaNode;
     pixelsPerSecond: number;
     trackHeight: number;
+    trackId: number;
     isSelected?: boolean;
+    isDragging?: boolean;
+    dragPreviewOffset?: number;
+    originalTrackId?: number;
+    currentDragTrackId?: number;
     onSelect?: (cellId: string) => void;
-    onDragStart?: (cellId: string, event: React.MouseEvent) => void;
+    onDragStart?: (cellId: string, trackId: number, event: React.MouseEvent) => void;
 }
 
 export function TimelineClip({
@@ -16,7 +21,12 @@ export function TimelineClip({
     node,
     pixelsPerSecond = 20,
     trackHeight,
+    trackId,
     isSelected = false,
+    isDragging = false,
+    dragPreviewOffset = 0,
+    originalTrackId = 0,
+    currentDragTrackId = 0,
     onSelect,
     onDragStart,
 }: TimelineClipProps) {
@@ -30,13 +40,16 @@ export function TimelineClip({
     const clipWidth = effectiveDuration * pixelsPerSecond;
     const clipLeft = (cell.startTime || 0) * pixelsPerSecond;
 
+    // Calculate vertical offset for track changes
+    const verticalOffset = (currentDragTrackId - originalTrackId) * trackHeight;
+
     const handleMouseDown = (e: React.MouseEvent) => {
         e.stopPropagation();
         if (onSelect) {
             onSelect(cell.id);
         }
         if (onDragStart) {
-            onDragStart(cell.id, e);
+            onDragStart(cell.id, trackId, e);
         }
     };
 
@@ -45,16 +58,21 @@ export function TimelineClip({
             className={`timeline-clip ${isSelected ? 'selected' : ''}`}
             style={{
                 position: 'absolute',
+                top: '4px',
+                borderRadius: '4px',
+                overflow: 'hidden',
+                userSelect: 'none',
+                boxSizing: 'border-box',
                 left: `${clipLeft}px`,
                 width: `${clipWidth}px`,
                 height: `${trackHeight - 8}px`,
-                top: '4px',
                 backgroundColor: node.type === 'video' ? '#4a90e2' : '#e24a90',
                 border: isSelected ? '2px solid #fff' : '1px solid rgba(0,0,0,0.2)',
-                borderRadius: '4px',
-                cursor: 'grab',
-                overflow: 'hidden',
-                userSelect: 'none',
+                cursor: isDragging ? 'grabbing' : 'grab',
+                transform: isDragging ? `translate(${dragPreviewOffset}px, ${verticalOffset}px)` : 'none',
+                opacity: isDragging ? 0.7 : 1,
+                zIndex: isDragging ? 100 : 1,
+                transition: isDragging ? 'none' : 'opacity 0.2s',
             }}
             onMouseDown={handleMouseDown}
         >

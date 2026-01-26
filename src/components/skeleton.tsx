@@ -23,7 +23,8 @@ export function Skeleton() {
     const { Inspector } = installInspector(canvasPresenter.handleFileUpload);
     const { EffectEditor } = installEffectsEditor();
     const { VideoEditor } = installVideoEditor(
-        canvasState, 
+        canvasState,
+        canvasPresenter,
         canvasPresenter.addTrack,
         canvasPresenter.handleFileUpload,
     );

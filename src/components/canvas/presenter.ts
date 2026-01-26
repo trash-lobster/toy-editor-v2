@@ -230,6 +230,8 @@ export class CanvasPresenter {
 
         const cells = track.cells;
 
+
+
         // Calculate start time based on existing clips in the track
         let startTime = 0;
         if (cells.length > 0) {
@@ -255,6 +257,12 @@ export class CanvasPresenter {
         };
 
         cells.push(newCell);
+
+        let totalDuration = 0;
+        this.state.sceneEditor.tracks.forEach(track => {
+            totalDuration = Math.max(totalDuration, this.calculateTrackEnd(track.id));
+        });
+        this.state.sceneEditor.totalDuration = totalDuration;
     }
 
     handleFileUpload = async(e: React.ChangeEvent<HTMLInputElement>, fileInputRef: React.RefObject<HTMLInputElement | null>) => {
@@ -305,7 +313,7 @@ export class CanvasPresenter {
         if (!this.state.sceneEditor?.tracks || !track) return;
 
         const cells = track.cells;
-        const index = cells.findIndex(c => c.mediaNodeId === clipId);
+        const index = cells.findIndex(c => c.id === clipId);
         if (index !== -1) {
             cells[index] = { ...cells[index], ...updates };
         }
@@ -318,11 +326,146 @@ export class CanvasPresenter {
         if (!this.state.sceneEditor?.tracks || !track) return;
 
         const cells = track.cells;
-        const index = cells.findIndex(c => c.mediaNodeId === clipId);
+        const index = cells.findIndex(c => c.id === clipId);
         if (index !== -1) {
             cells[index] = { ...cells[index], startTime: newStartTime };
         }
 
-        // update position on the timeline
+        // Sort cells by start time
+        track.cells.sort((a, b) => (a.startTime || 0) - (b.startTime || 0));
+
+        // Recalculate total duration
+        let totalDuration = 0;
+        this.state.sceneEditor.tracks.forEach(track => {
+            totalDuration = Math.max(totalDuration, this.calculateTrackEnd(track.id));
+        });
+        this.state.sceneEditor.totalDuration = totalDuration;
+    };
+
+    moveClipToTrack = (clipId: string, sourceTrackId: number, targetTrackId: number, newStartTime: number) => {
+        if (!this.state.sceneEditor) return false;
+
+        const sourceTrack = this.getTrack(sourceTrackId);
+        const targetTrack = this.getTrack(targetTrackId);
+        if (!sourceTrack || !targetTrack) return false;
+
+        // Find and remove from source track
+        const sourceIndex = sourceTrack.cells.findIndex(c => c.id === clipId);
+        if (sourceIndex === -1) return false;
+
+        const cell = sourceTrack.cells[sourceIndex];
+        sourceTrack.cells.splice(sourceIndex, 1);
+
+        // Add to target track with new start time
+        cell.startTime = newStartTime;
+        targetTrack.cells.push(cell);
+
+        // Sort target track cells by start time
+        targetTrack.cells.sort((a, b) => (a.startTime || 0) - (b.startTime || 0));
+
+        // Recalculate total duration
+        let totalDuration = 0;
+        this.state.sceneEditor.tracks.forEach(track => {
+            totalDuration = Math.max(totalDuration, this.calculateTrackEnd(track.id));
+        });
+        this.state.sceneEditor.totalDuration = totalDuration;
+
+        return true;
+    };
+
+    swapClips = (clip1Id: string, track1Id: number, clip2Id: string, track2Id: number) => {
+        if (!this.state.sceneEditor) return false;
+
+        const track1 = this.getTrack(track1Id);
+        const track2 = this.getTrack(track2Id);
+        if (!track1 || !track2) return false;
+
+        const cell1Index = track1.cells.findIndex(c => c.id === clip1Id);
+        const cell2Index = track2.cells.findIndex(c => c.id === clip2Id);
+        if (cell1Index === -1 || cell2Index === -1) return false;
+
+        const cell1 = track1.cells[cell1Index];
+        const cell2 = track2.cells[cell2Index];
+
+        // Swap start times
+        const tempStartTime = cell1.startTime;
+        cell1.startTime = cell2.startTime;
+        cell2.startTime = tempStartTime;
+
+        // If different tracks, swap cells between tracks
+        if (track1Id !== track2Id) {
+            track1.cells[cell1Index] = cell2;
+            track2.cells[cell2Index] = cell1;
+            
+            // Sort both tracks after swapping
+            track1.cells.sort((a, b) => (a.startTime || 0) - (b.startTime || 0));
+            track2.cells.sort((a, b) => (a.startTime || 0) - (b.startTime || 0));
+        } else {
+            // Same track, just sort
+            track1.cells.sort((a, b) => (a.startTime || 0) - (b.startTime || 0));
+        }
+
+        return true;
+    };
+
+    checkCollision = (clipId: string, trackId: number, newStartTime: number, duration: number) => {
+        const track = this.getTrack(trackId);
+        if (!track) return { valid: true, swapTarget: null };
+
+        const newEndTime = newStartTime + duration;
+
+        // Find any overlapping clip (excluding the dragged clip itself)
+        for (const cell of track.cells) {
+            if (cell.id === clipId) continue;
+
+            const cellStartTime = cell.startTime || 0;
+            const cellDuration = cell.duration || 0;
+            const cellTrimStart = cell.trimStart || 0;
+            const cellTrimEnd = cell.trimEnd || 0;
+            const cellEffectiveDuration = cellDuration - cellTrimStart - cellTrimEnd;
+            const cellEndTime = cellStartTime + cellEffectiveDuration;
+
+            // Check for overlap
+            const overlaps = newStartTime < cellEndTime && newEndTime > cellStartTime;
+            if (!overlaps) continue;
+
+            // Calculate overlap amount
+            const overlapStart = Math.max(newStartTime, cellStartTime);
+            const overlapEnd = Math.min(newEndTime, cellEndTime);
+            const overlapDuration = overlapEnd - overlapStart;
+
+            // Calculate overlap percentage for both clips
+            const overlapPercentageOfDragged = overlapDuration / duration;
+            const overlapPercentageOfTarget = overlapDuration / cellEffectiveDuration;
+
+            // If >50% overlap of either clip, trigger swap
+            if (overlapPercentageOfDragged > 0.5 || overlapPercentageOfTarget > 0.5) {
+                return { valid: true, swapTarget: cell.id };
+            }
+
+            // If <50% overlap of both clips, try to snap to end
+            if (overlapPercentageOfDragged < 0.5 && overlapPercentageOfTarget < 0.5) {
+                // Determine if we're approaching from the left or right
+                const approachingFromLeft = newStartTime < cellStartTime;
+                
+                if (approachingFromLeft) {
+                    // Snap to the left edge (before the existing clip)
+                    const snappedTime = cellStartTime - duration;
+                    if (snappedTime >= 0) {
+                        return { valid: true, swapTarget: null, snapTime: snappedTime };
+                    }
+                } else {
+                    // Snap to the right edge (after the existing clip)
+                    const snappedTime = cellEndTime;
+                    return { valid: true, swapTarget: null, snapTime: snappedTime };
+                }
+            }
+
+            // Collision detected but not enough for swap and can't snap
+            return { valid: false, swapTarget: null };
+        }
+
+        // No collision, valid drop
+        return { valid: true, swapTarget: null };
     };
 }

@@ -1,4 +1,5 @@
 import type { CanvasState } from "../canvas/state";
+import type { CanvasPresenter } from "../canvas/presenter";
 import { createVirtualTimelineState } from "./state";
 import { installTimelineArea } from "./timeline-area/install";
 import { VideoEditor as InnerEditor } from "./video-editor"
@@ -7,6 +8,7 @@ import { installVideoPreviewArea } from "./video-preview-area/install"
 
 export function installVideoEditor(
     canvasState: CanvasState,
+    canvasPresenter: CanvasPresenter,
     addTrack: () => void,
     handleFileUpload: (
         e: React.ChangeEvent<HTMLInputElement>, 
@@ -15,11 +17,12 @@ export function installVideoEditor(
 ) {
     const virtualTimelineState = createVirtualTimelineState();
     const { VideoPreviewArea } = installVideoPreviewArea(handleFileUpload);
-    const { VideoPlayback } = installVideoPlayback();
+    const { VideoPlayback } = installVideoPlayback(canvasState);
     const { TimelineArea } = installTimelineArea(
         canvasState, 
         virtualTimelineState,
         addTrack,
+        canvasPresenter,
     );
 
     const VideoEditor = () => {

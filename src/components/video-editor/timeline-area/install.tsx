@@ -5,14 +5,21 @@ import { createTimelineState } from "./state";
 import type { CanvasState } from "../../canvas/state";
 import { TimelinePresenter } from "./presenter";
 import type { VirtualTimelineState } from "../state";
+import type { CanvasPresenter } from "../../canvas/presenter";
 
 
-export function installTimelineArea(canvasState: CanvasState, virtualTimelineState: VirtualTimelineState, addTrack: () => void) {
+export function installTimelineArea(
+    canvasState: CanvasState, 
+    virtualTimelineState: VirtualTimelineState, 
+    addTrack: () => void,
+    canvasPresenter: CanvasPresenter
+) {
     const timelineState = createTimelineState();
     const presenter = new TimelinePresenter(timelineState);
+    presenter.setCanvasPresenter(canvasPresenter);
     
     const TimelineArea = () => {
-        const { selectedClipId } = useSnapshot(timelineState);
+        const { selectedClipId, isDragging, dragPreviewOffset, originalTrackId, currentDragTrackId } = useSnapshot(timelineState);
         const { nodes, sceneEditor } = useSnapshot(canvasState);
         const { totalDuration } = useSnapshot(virtualTimelineState);
 
@@ -28,6 +35,10 @@ export function installTimelineArea(canvasState: CanvasState, virtualTimelineSta
                     handleDragStart={presenter.handleDragStart}
                     totalDuration={totalDuration}
                     selectedClipId={selectedClipId}
+                    isDragging={isDragging}
+                    dragPreviewOffset={dragPreviewOffset}
+                    originalTrackId={originalTrackId}
+                    currentDragTrackId={currentDragTrackId}
                     nodes={nodes}
                     tracks={sceneEditor?.tracks}
                 />

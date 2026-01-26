@@ -1,9 +1,10 @@
 import { useSnapshot } from "valtio/react";
 import { VideoPlayback as InternalVideoPlayback } from "./video-playback";
 import { createVideoPlaybackState } from "./state";
+import type { CanvasState } from "../../canvas/state";
 
 
-export function installVideoPlayback() {
+export function installVideoPlayback(canvasState: CanvasState) {
     const videoPlaybackState = createVideoPlaybackState();
     
     const setIsPlaying = (playing: boolean) => {
@@ -23,13 +24,14 @@ export function installVideoPlayback() {
     };
 
     const VideoPlayback = () => {
-        const { isPlaying, globalTime, totalDuration } = useSnapshot(videoPlaybackState);
+        const { isPlaying, globalTime, } = useSnapshot(videoPlaybackState);
+        const { sceneEditor, } = useSnapshot(canvasState);
         
         return (
             <InternalVideoPlayback 
                 isPlaying={isPlaying}
                 globalTime={globalTime}
-                totalDuration={totalDuration}
+                totalDuration={sceneEditor?.totalDuration ?? 0}
             />
         );
     };
