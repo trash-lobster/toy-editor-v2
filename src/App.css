@@ -61,9 +61,9 @@
     flex-direction: column;
     position: sticky;
     left: 0;
-    z-index: 10;
     flex-shrink: 0;
     background-color: white;
+    z-index: 3;
 }
 
 .timeline-canvas {
@@ -84,6 +84,7 @@
 }
 
 .timeline-add-track {
+    position: sticky;
     height: 30px;
     border-bottom: 1px solid #333;
     font-size: 12px;
@@ -91,10 +92,8 @@
     cursor: pointer;
     box-sizing: border-box;
     flex-shrink: 0;
-    position: sticky;
     top: 0;
-    background-color: '#ffffff';
-    z-index: 11,
+    background-color: #ffffff;
 }
 
 .timeline-add-track:hover {

@@ -24,24 +24,26 @@ export function installTimelineArea(
         const { totalDuration } = useSnapshot(virtualTimelineState);
 
         return (
-            <div className='timeline-area' style={{ display: 'flex', overflow: 'auto', height: '100%' }}>
-                <TimelineControls 
-                    tracks={sceneEditor?.tracks.length} 
-                    trackHeight={80}
-                    addTrack={addTrack}
-                />
-                <InternalTimelineCanvas
-                    handleClipSelect={presenter.handleClipSelect}
-                    handleDragStart={presenter.handleDragStart}
-                    totalDuration={totalDuration}
-                    selectedClipId={selectedClipId}
-                    isDragging={isDragging}
-                    dragPreviewOffset={dragPreviewOffset}
-                    originalTrackId={originalTrackId}
-                    currentDragTrackId={currentDragTrackId}
-                    nodes={nodes}
-                    tracks={sceneEditor?.tracks}
-                />
+            <div className='timeline-area' style={{ display: 'flex', overflow: 'hidden', height: '100%' }}>
+                <div style={{display: 'flex', overflow: 'auto', width: '100%', minHeight: '100%'}}>
+                    <TimelineControls 
+                        tracks={sceneEditor?.tracks.length} 
+                        trackHeight={80}
+                        addTrack={addTrack}
+                    />
+                    <InternalTimelineCanvas
+                        handleClipSelect={presenter.handleClipSelect}
+                        handleDragStart={presenter.handleDragStart}
+                        totalDuration={totalDuration}
+                        selectedClipId={selectedClipId}
+                        isDragging={isDragging}
+                        dragPreviewOffset={dragPreviewOffset}
+                        originalTrackId={originalTrackId}
+                        currentDragTrackId={currentDragTrackId}
+                        nodes={nodes}
+                        tracks={sceneEditor?.tracks}
+                    />
+                </div>
             </div>
         )
     }

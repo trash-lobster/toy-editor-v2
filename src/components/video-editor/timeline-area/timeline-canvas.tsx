@@ -57,21 +57,18 @@ export function TimelineCanvas({
 
     return (
         <div className={`timeline-canvas`}>
-            <div 
-                className="timeline-canvas-container" 
-                style={{ width: '100%', height: '100%' }}
-            >
+            <div className="timeline-canvas-container">
                 {/* Time Ruler */}
                 <div
                     style={{
                         position: 'sticky',
                         top: 0,
                         height: '30px',
-                        // borderLeft: '1px solid #333',
                         borderBottom: '1px solid #333',
                         display: 'flex',
                         alignItems: 'flex-end',
                         backgroundColor: 'white',
+                        zIndex: 2,
                     }}
                 >
                     <div style={{ position: 'relative', width: `${timelineWidth}px`, height: '100%' }}>
@@ -98,10 +95,11 @@ export function TimelineCanvas({
 
                 {/* Timeline Content */}
                 <div ref={timelineRef} 
-                    style={{ 
+                    style={{
+                        position: 'relative',
                         display: 'flex', 
-                        flexDirection: 'column', 
-                        borderLeft: '1px solid',
+                        flexDirection: 'column',
+                        zIndex: 1,
                     }}
                 >
                     {tracks.map((track: ReadonlyMediaTrack) => (
