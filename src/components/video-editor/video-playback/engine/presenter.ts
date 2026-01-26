@@ -1,16 +1,16 @@
 import type { VirtualTimelineState } from "../../state";
 import type { VideoElementPoolPresenter } from "../video-element-pool/presenter";
-import type { CanvasCompositorPresenter } from "../canvas-compositor/presenter";
+import type { CanvasCompositor } from "../canvas-compositor/presenter";
 import type { CanvasPresenter } from "../../../canvas/presenter";
 
 /**
  * PlaybackEngine manages the video playback loop using requestAnimationFrame.
  * Coordinates VideoElementPool and CanvasCompositor to render multi-track video.
  */
-export class PlaybackEnginePresenter {
+export class PlaybackEngine {
     virtualTimelineState: VirtualTimelineState;
     videoPool: VideoElementPoolPresenter;
-    compositor: CanvasCompositorPresenter;
+    compositor: CanvasCompositor;
     canvasPresenter: CanvasPresenter;
 
     rafId: number | null = null;
@@ -19,7 +19,7 @@ export class PlaybackEnginePresenter {
     constructor(
         virtualTimelineState: VirtualTimelineState,
         videoPool: VideoElementPoolPresenter,
-        compositor: CanvasCompositorPresenter,
+        compositor: CanvasCompositor,
         canvasPresenter: CanvasPresenter
     ) {
         this.virtualTimelineState = virtualTimelineState;

@@ -3,7 +3,7 @@ import { VideoElementPoolPresenter } from "../video-element-pool/presenter";
 import type { CanvasCompositorState } from "./state";
 
 // canvas-compositor/presenter.ts
-export class CanvasCompositorPresenter {
+export class CanvasCompositor {
     state: CanvasCompositorState;
     videoPool: VideoElementPoolPresenter;
     canvasPresenter: CanvasPresenter;
@@ -18,7 +18,8 @@ export class CanvasCompositorPresenter {
         this.canvasPresenter = canvasPresenter;
     }
 
-    setCanvas(canvas: HTMLCanvasElement | null) {
+    setCanvas = (canvas: HTMLCanvasElement | null) => {
+        console.log(canvas);
         this.state.canvasRef = canvas;
         if (canvas) {
             this.state.ctx = canvas.getContext('2d', {
@@ -31,13 +32,15 @@ export class CanvasCompositorPresenter {
     render(currentTime: number) {
         const { canvasRef, ctx } = this.state;
         if (!ctx || !canvasRef) return;
+        
+        console.log('renderng');
 
         ctx.fillStyle = '#000000';
         ctx.fillRect(0, 0, canvasRef.width, canvasRef.height);
-
+        
         const activeClips = this.canvasPresenter.getCellsAtGlobalTime(currentTime);
         if (!activeClips?.length) return;
-
+        
         // Sort by track (visually top track should be drawn at the top)
         activeClips.sort((a, b) => b.clipIndex - a.clipIndex);
 

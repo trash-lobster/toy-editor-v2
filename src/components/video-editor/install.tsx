@@ -5,11 +5,11 @@ import { installTimelineArea } from "./timeline-area/install";
 import { VideoEditor as InnerEditor } from "./video-editor"
 import { installVideoPlaybackPanel } from "./video-playback/install";
 import { installVideoPreviewArea } from "./video-preview-area/install"
-import { PlaybackEnginePresenter } from "./video-playback/engine/presenter";
+import { PlaybackEngine } from "./video-playback/engine/presenter";
 import { createVideoElementPool } from "./video-playback/video-element-pool/state";
 import { VideoElementPoolPresenter } from "./video-playback/video-element-pool/presenter";
 import { createCanvasCompositor } from "./video-playback/canvas-compositor/state";
-import { CanvasCompositorPresenter } from "./video-playback/canvas-compositor/presenter";
+import { CanvasCompositor } from "./video-playback/canvas-compositor/presenter";
 
 export function installVideoEditor(
     canvasState: CanvasState,
@@ -23,15 +23,20 @@ export function installVideoEditor(
 ) {
     const videoPool = createVideoElementPool();
     const videoPoolPresenter = new VideoElementPoolPresenter(videoPool);
-    const canvasCompositorPresenter = new CanvasCompositorPresenter(createCanvasCompositor(), videoPoolPresenter, canvasPresenter);
-    const playbackEngine = new PlaybackEnginePresenter(
+    const canvasCompositor = new CanvasCompositor(createCanvasCompositor(), videoPoolPresenter, canvasPresenter);
+    const playbackEngine = new PlaybackEngine(
         virtualTimelineState,
         videoPoolPresenter,
-        canvasCompositorPresenter,
+        canvasCompositor,
         canvasPresenter,
     );
 
-    const { VideoPreviewArea } = installVideoPreviewArea(handleFileUpload, canvasState);
+    const { VideoPreviewArea } = installVideoPreviewArea(
+        handleFileUpload, 
+        canvasState,
+        canvasCompositor,
+        playbackEngine,
+    );
     const { VideoPlaybackPanel } = installVideoPlaybackPanel(playbackEngine, virtualTimelineState);
     const { TimelineArea } = installTimelineArea(
         canvasState, 

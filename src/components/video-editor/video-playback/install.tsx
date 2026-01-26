@@ -1,10 +1,10 @@
 import { useSnapshot } from "valtio/react";
 import { VideoPlaybackPanel as InternalVideoPlayback } from "./video-playback";
 import type { VirtualTimelineState } from "../state";
-import type { PlaybackEnginePresenter } from "./engine/presenter";
+import type { PlaybackEngine } from "./engine/presenter";
 
 export function installVideoPlaybackPanel(
-    playbackEngine: PlaybackEnginePresenter, // enables play back etc.
+    playbackEngine: PlaybackEngine, // enables play back etc.
     virtualTimelinestate: VirtualTimelineState,
 ) {    
     const VideoPlaybackPanel = () => {
