@@ -20,7 +20,6 @@ export function installVideoEditor(
     const { VideoPlayback } = installVideoPlayback(canvasState);
     const { TimelineArea } = installTimelineArea(
         canvasState, 
-        virtualTimelineState,
         addTrack,
         canvasPresenter,
     );

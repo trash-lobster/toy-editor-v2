@@ -37,7 +37,9 @@ export function TimelineCanvas({
     const pixelsPerSecond = 20;
     const trackHeight = 80;
 
-    const timelineWidth = Math.max(totalDuration * pixelsPerSecond, 1000);
+    const timelineWidth = Math.max(Math.ceil(totalDuration) * pixelsPerSecond, 1000);
+
+    console.log('Timeline width:', timelineWidth);
 
     const nodeMap = useMemo(() => {
         const map = new Map();
@@ -69,11 +71,18 @@ export function TimelineCanvas({
                         alignItems: 'flex-end',
                         backgroundColor: 'white',
                         zIndex: 2,
+                        minWidth: '100%',
+                        width: `${timelineWidth}px`
                     }}
                 >
-                    <div style={{ position: 'relative', width: `${timelineWidth}px`, height: '100%' }}>
-                        {timeMarkers.map((time) => (
-                            <div
+                    <div style={{ 
+                        position: 'relative', 
+                        width: '100%',
+                        height: '100%'
+                    }}>
+                        {timeMarkers.map((time) => {
+                            if (time % 10 !== 0) return <></>
+                            return <div
                                 key={time}
                                 style={{
                                     position: 'absolute',
@@ -89,7 +98,7 @@ export function TimelineCanvas({
                             >
                                 {time}s
                             </div>
-                        ))}
+                        })}
                     </div>
                 </div>
 
@@ -100,6 +109,8 @@ export function TimelineCanvas({
                         display: 'flex', 
                         flexDirection: 'column',
                         zIndex: 1,
+                        minWidth: '100%',
+                        width: `${timelineWidth}px`,
                     }}
                 >
                     {tracks.map((track: ReadonlyMediaTrack) => (
