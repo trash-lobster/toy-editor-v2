@@ -139,16 +139,13 @@ export class PlaybackEnginePresenter {
     skipForward = (seconds: number = 5): void => {
         const newTime = this.virtualTimelineState.currentTime + seconds;
         this.seek(newTime);
-        console.log('new time', newTime);
     };
 
     /**
      * Jump backward by a fixed amount (e.g., 5 seconds).
      */
     skipBackward = (seconds: number = 5): void => {
-        console.log(seconds);
         const newTime = this.virtualTimelineState.currentTime - seconds;
-        console.log('new time', newTime);
         this.seek(newTime);
     };
 
