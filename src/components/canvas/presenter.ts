@@ -33,6 +33,12 @@ export class CanvasPresenter {
         return this.state.sceneEditor.tracks.filter(track => track.id === trackId)[0];
     }
 
+    addTrack = () => {
+        if (!this.state.sceneEditor) return;
+        const newId = this.state.sceneEditor.tracks.length;
+        this.state.sceneEditor.tracks.push({ id: newId, cells: [], });
+    }
+
     private getEffectiveDuration = (cell: SceneEditorCell): number => {
         const originalDuration = cell.duration || 0;
         const trimStart = cell.trimStart || 0;

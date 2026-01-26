@@ -49,7 +49,7 @@ export function TimelineCanvas({
         <div className={`timeline-canvas`}>
             <div 
                 className="timeline-canvas-container" 
-                style={{ width: '100%', height: '100%', overflow: 'auto', }}
+                style={{ width: '100%', height: '100%' }}
             >
                 {/* Time Ruler */}
                 <div
@@ -57,10 +57,12 @@ export function TimelineCanvas({
                         position: 'sticky',
                         top: 0,
                         height: '30px',
+                        borderLeft: '1px solid #333',
                         borderBottom: '1px solid #333',
                         zIndex: 10,
                         display: 'flex',
                         alignItems: 'flex-end',
+                        backgroundColor: 'white',
                     }}
                 >
                     <div style={{ position: 'relative', width: `${timelineWidth}px`, height: '100%' }}>
@@ -71,11 +73,12 @@ export function TimelineCanvas({
                                     position: 'absolute',
                                     left: `${time * pixelsPerSecond}px`,
                                     height: '100%',
-                                    borderLeft: '1px solid #444',
-                                    paddingLeft: '4px',
+                                    marginLeft: '10px',
                                     fontSize: '11px',
                                     color: '#888',
                                     paddingTop: '4px',
+                                    paddingLeft: '4px',
+                                    borderLeft: '1px solid #888',
                                 }}
                             >
                                 {time}s
@@ -85,7 +88,13 @@ export function TimelineCanvas({
                 </div>
 
                 {/* Timeline Content */}
-                <div ref={timelineRef} style={{ display: 'flex', flexDirection: 'column' }}>
+                <div ref={timelineRef} 
+                    style={{ 
+                        display: 'flex', 
+                        flexDirection: 'column', 
+                        borderLeft: '1px solid',
+                    }}
+                >
                     {tracks.map((track: MediaTrack) => (
                         <div
                             key={track.id}
@@ -95,6 +104,7 @@ export function TimelineCanvas({
                                 height: `${trackHeight}px`,
                                 borderBottom: '1px solid #333',
                                 position: 'relative',
+                                paddingLeft: '10px',
                             }}
                         >
                             {/* Track Content */}

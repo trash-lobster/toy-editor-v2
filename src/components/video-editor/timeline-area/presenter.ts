@@ -30,6 +30,8 @@ export class TimelinePresenter {
             // if (onClipMove) {
             //     onClipMove(cellId, newStartTime, trackId);
             // }
+
+            console.log('moving');
         };
 
         const handleMouseUp = () => {

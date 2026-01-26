@@ -7,6 +7,7 @@ import { installVideoPreviewArea } from "./video-preview-area/install"
 
 export function installVideoEditor(
     canvasState: CanvasState,
+    addTrack: () => void,
     handleFileUpload: (
         e: React.ChangeEvent<HTMLInputElement>, 
         fileInputRef: React.RefObject<HTMLInputElement | null>
@@ -15,7 +16,11 @@ export function installVideoEditor(
     const virtualTimelineState = createVirtualTimelineState();
     const { VideoPreviewArea } = installVideoPreviewArea(handleFileUpload);
     const { VideoPlayback } = installVideoPlayback();
-    const { TimelineArea } = installTimelineArea(canvasState, virtualTimelineState);
+    const { TimelineArea } = installTimelineArea(
+        canvasState, 
+        virtualTimelineState,
+        addTrack,
+    );
 
     const VideoEditor = () => {
         return (
