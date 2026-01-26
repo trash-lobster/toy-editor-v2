@@ -1,36 +1,20 @@
-import { useSnapshot } from "valtio/react";
-import { installHeader } from "./header/install";
-import { createLayoutState } from "./state";
-import { installInspector } from "./inspector/install";
-import { installEffectsEditor } from "./effects-editor/install";
-import { installVideoEditor } from "./video-editor/install";
-import { createCanvasState } from "./canvas/state";
-import { CanvasPresenter } from "./canvas/presenter";
-
-// Create state outside component so it persists across renders
-const layoutState = createLayoutState();
-
-const layoutPresenter = {
-    toggleLeft: () => layoutState.left = !layoutState.left,
-    toggleRight: () => layoutState.right = !layoutState.right
+interface Props {
+    left: boolean,
+    right: boolean,
+    Header: React.ComponentType,
+    Inspector: React.ComponentType,
+    VideoEditor: React.ComponentType,
+    EffectEditor: React.ComponentType,
 }
 
-export function Skeleton() {
-    const canvasState = createCanvasState();
-    const canvasPresenter = new CanvasPresenter(canvasState);
-
-    const { Header } = installHeader(layoutPresenter.toggleLeft, layoutPresenter.toggleRight);
-    const { Inspector } = installInspector(canvasPresenter.handleFileUpload);
-    const { EffectEditor } = installEffectsEditor();
-    const { VideoEditor } = installVideoEditor(
-        canvasState,
-        canvasPresenter,
-        canvasPresenter.addTrack,
-        canvasPresenter.handleFileUpload,
-    );
-
-    const { left, right } = useSnapshot(layoutState);
-
+export function Skeleton({
+    left,
+    right,
+    Header,
+    Inspector,
+    VideoEditor,
+    EffectEditor,
+}: Props) {
     const getGridColumns = () => {
         if (left && right) {
             return 'clamp(14rem, 15%, 16rem) 1fr clamp(14rem, 15%, 16rem)';
