@@ -8,7 +8,6 @@ import type { CanvasPresenter } from "../../../canvas/presenter";
  * Coordinates VideoElementPool and CanvasCompositor to render multi-track video.
  */
 export class PlaybackEnginePresenter {
-    // canvasState: CanvasState;
     virtualTimelineState: VirtualTimelineState;
     videoPool: VideoElementPoolPresenter;
     compositor: CanvasCompositorPresenter;
@@ -18,13 +17,11 @@ export class PlaybackEnginePresenter {
     lastFrameTime: number = 0;
 
     constructor(
-        // canvasState: CanvasState,
         virtualTimelineState: VirtualTimelineState,
         videoPool: VideoElementPoolPresenter,
         compositor: CanvasCompositorPresenter,
         canvasPresenter: CanvasPresenter
     ) {
-        // this.canvasState = canvasState;
         this.virtualTimelineState = virtualTimelineState;
         this.videoPool = videoPool;
         this.compositor = compositor;
