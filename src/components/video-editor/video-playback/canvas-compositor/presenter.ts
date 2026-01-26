@@ -35,11 +35,14 @@ export class CanvasCompositor {
         
         console.log('renderng:', currentTime);
 
-        ctx.fillStyle = '#000000';
-        ctx.fillRect(0, 0, canvasRef.width, canvasRef.height);
-        
         const activeClips = this.canvasPresenter.getCellsAtGlobalTime(currentTime);
-        if (!activeClips?.length) return;
+        
+        // Clear canvas when there are no active clips (gaps in timeline)
+        if (!activeClips?.length) {
+            ctx.fillStyle = '#000000';
+            ctx.fillRect(0, 0, canvasRef.width, canvasRef.height);
+            return;
+        }
         
         // Sort by track (visually top track should be drawn at the top)
         activeClips.sort((a, b) => b.clipIndex - a.clipIndex);
