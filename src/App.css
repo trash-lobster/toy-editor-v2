@@ -56,7 +56,6 @@
 .timeline-controls {
     width: 10%;
     min-width: 120px;
-    border-right: 1px solid var(--border);
     display: flex;
     flex-direction: column;
     position: sticky;
@@ -94,6 +93,8 @@
     flex-shrink: 0;
     top: 0;
     background-color: #ffffff;
+    width: 100%;
+    border-right: 1px solid #333;
 }
 
 .timeline-add-track:hover {
@@ -109,8 +110,4 @@
     font-size: 12px;
     color: #888;
     flex-shrink: 0;
-}
-
-.timeline-controls {
-    border-right: 1px solid #333;
 }

@@ -7,23 +7,26 @@ interface TimelineControlsProps {
 export function TimelineControls({ tracks = 0, trackHeight, addTrack }: TimelineControlsProps) {
     return (
         <div className="timeline-controls">
-            <button
-                className='timeline-add-track'
-                onClick={addTrack}
-            >
-                Add track
-            </button>
-            
-            {/* Track labels */}
-            {Array.from({length: tracks}).map((_, trackIndex) => (
-                <div
-                    key={trackIndex}
-                    className="timeline-track-label"
-                    style={{ height: `${trackHeight}px`, }}
+            <div>
+                <button
+                    className='timeline-add-track'
+                    onClick={addTrack}
                 >
-                    Track {trackIndex + 1}
+                    Add track
+                </button>
+                <div style={{borderRight: '1px solid black'}}>
+                    {/* Track labels */}
+                    {Array.from({length: tracks}).map((_, trackIndex) => (
+                        <div
+                            key={trackIndex}
+                            className="timeline-track-label"
+                            style={{ height: `${trackHeight}px`, }}
+                        >
+                            Track {trackIndex + 1}
+                        </div>
+                    ))}
                 </div>
-            ))}
+            </div>
         </div>
     );
 }

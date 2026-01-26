@@ -57,7 +57,7 @@ export function TimelineCanvas({
 
     return (
         <div className={`timeline-canvas`}>
-            <div className="timeline-canvas-container">
+            <div>
                 {/* Time Ruler */}
                 <div
                     style={{
@@ -119,7 +119,7 @@ export function TimelineCanvas({
                                 style={{
                                     position: 'relative',
                                     minWidth: `${100}px`,
-                                    height: '100%',
+                                    // height: '100%',
                                 }}
                             >
                                 {track.cells.map((cell) => {
