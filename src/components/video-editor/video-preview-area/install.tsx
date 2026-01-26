@@ -1,7 +1,6 @@
 import { VideoPreviewArea as InternalVideoPreviewArea } from "./video-preview-area";
 import { createVideoPlayerState } from "./state";
 import type { SceneEditorCell, CanvasState } from "../../canvas/state";
-import type { CanvasPresenter } from "../../canvas/presenter";
 import { useSnapshot } from "valtio";
 
 export function installVideoPreviewArea(
@@ -9,7 +8,6 @@ export function installVideoPreviewArea(
         e: React.ChangeEvent<HTMLInputElement>, 
         fileInputRef: React.RefObject<HTMLInputElement | null>
     ) => Promise<{status: string} | undefined>,
-    canvasPresenter: CanvasPresenter,
     canvasState: CanvasState,
 ) {
     const videoPlayerState = createVideoPlayerState();

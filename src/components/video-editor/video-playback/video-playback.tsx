@@ -1,6 +1,6 @@
 import { Pause, Play, SkipBack, SkipForward } from "lucide-react";
 
-interface VideoPlaybackProps {
+interface props {
     isPlaying: boolean,
     globalTime: number,
     totalDuration: number,
@@ -9,14 +9,14 @@ interface VideoPlaybackProps {
     onSkipNext: () => void,
 }
 
-export function VideoPlayback({ 
+export function VideoPlaybackPanel({ 
     isPlaying, 
     globalTime, 
     totalDuration,
     onSkipPrevious,
     onSkipNext,
     onTogglePlayback,
-}: VideoPlaybackProps) {
+}: props) {
     return (
         <div className="video-playback-panel">
             <div className="flex items-center gap-6">
