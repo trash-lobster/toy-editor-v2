@@ -8,6 +8,8 @@ import { Skeleton } from './components/skeleton';
 import { createLayoutState } from './components/state';
 import { installVideoEditor } from './components/video-editor/install';
 import { createVirtualTimelineState } from './components/video-editor/state';
+import { createVideoElementPool } from './components/video-editor/video-playback/video-element-pool/state';
+import { VideoElementPoolPresenter } from './components/video-editor/video-playback/video-element-pool/presenter';
 
 export function installApp() {
     const layoutState = createLayoutState();
@@ -17,9 +19,11 @@ export function installApp() {
     }
 
     const virtualTimelineState = createVirtualTimelineState();
+    const videoPool = createVideoElementPool();
+    const videoPoolPresenter = new VideoElementPoolPresenter(videoPool);
 
     const canvasState = createCanvasState();
-    const canvasPresenter = new CanvasPresenter(canvasState, virtualTimelineState);
+    const canvasPresenter = new CanvasPresenter(canvasState, virtualTimelineState, videoPoolPresenter);
 
     const { Header } = installHeader(layoutPresenter.toggleLeft, layoutPresenter.toggleRight);
     const { Inspector } = installInspector(canvasPresenter.handleFileUpload);
@@ -27,6 +31,7 @@ export function installApp() {
     const { VideoEditor } = installVideoEditor(
         canvasState,
         canvasPresenter,
+        videoPoolPresenter,
         virtualTimelineState,
         canvasPresenter.addTrack,
         canvasPresenter.handleFileUpload,

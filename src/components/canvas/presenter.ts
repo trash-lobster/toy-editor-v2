@@ -1,16 +1,19 @@
 import { proxy } from "valtio";
 import { CanvasState, NodeType, type MediaNode, type MediaNodeStatus, type SceneEditorCell } from "./state"
 import type { VirtualTimelineState } from "../video-editor/state";
+import type { VideoElementPoolPresenter } from "../video-editor/video-playback/video-element-pool/presenter";
 
 export const TRACK_LIMIT = 8;
 
 export class CanvasPresenter {
     state: CanvasState;
     timelineState: VirtualTimelineState;
+    videoPoolPresenter: VideoElementPoolPresenter;
 
-    constructor(state: CanvasState, timelineState: VirtualTimelineState) {
+    constructor(state: CanvasState, timelineState: VirtualTimelineState, videoPoolPresenter: VideoElementPoolPresenter) {
         this.state = state;
         this.timelineState = timelineState;
+        this.videoPoolPresenter = videoPoolPresenter;
     }
 
     getCanvas = () => {
@@ -197,6 +200,8 @@ export class CanvasPresenter {
                     resolve(null);
                 };
             });
+
+            this.videoPoolPresenter.addVideoToPool(nodeId, video);
         } else {
             // Get image dimensions
             const img = new Image();
@@ -239,8 +244,6 @@ export class CanvasPresenter {
         if (!this.state.sceneEditor?.tracks || !track) return;
 
         const cells = track.cells;
-
-
 
         // Calculate start time based on existing clips in the track
         let startTime = 0;

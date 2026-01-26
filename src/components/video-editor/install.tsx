@@ -6,7 +6,6 @@ import { VideoEditor as InnerEditor } from "./video-editor"
 import { installVideoPlaybackPanel } from "./video-playback/install";
 import { installVideoPreviewArea } from "./video-preview-area/install"
 import { PlaybackEngine } from "./video-playback/engine/presenter";
-import { createVideoElementPool } from "./video-playback/video-element-pool/state";
 import { VideoElementPoolPresenter } from "./video-playback/video-element-pool/presenter";
 import { createCanvasCompositor } from "./video-playback/canvas-compositor/state";
 import { CanvasCompositor } from "./video-playback/canvas-compositor/presenter";
@@ -14,6 +13,7 @@ import { CanvasCompositor } from "./video-playback/canvas-compositor/presenter";
 export function installVideoEditor(
     canvasState: CanvasState,
     canvasPresenter: CanvasPresenter,
+    videoPoolPresenter: VideoElementPoolPresenter,
     virtualTimelineState: VirtualTimelineState,
     addTrack: () => void,
     handleFileUpload: (
@@ -21,8 +21,6 @@ export function installVideoEditor(
         fileInputRef: React.RefObject<HTMLInputElement | null>
     ) => Promise<{status: string} | undefined>
 ) {
-    const videoPool = createVideoElementPool();
-    const videoPoolPresenter = new VideoElementPoolPresenter(videoPool);
     const canvasCompositor = new CanvasCompositor(createCanvasCompositor(), videoPoolPresenter, canvasPresenter);
     const playbackEngine = new PlaybackEngine(
         virtualTimelineState,

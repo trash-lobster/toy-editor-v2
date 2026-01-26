@@ -33,7 +33,7 @@ export class CanvasCompositor {
         const { canvasRef, ctx } = this.state;
         if (!ctx || !canvasRef) return;
         
-        console.log('renderng');
+        console.log('renderng:', currentTime);
 
         ctx.fillStyle = '#000000';
         ctx.fillRect(0, 0, canvasRef.width, canvasRef.height);
@@ -46,6 +46,7 @@ export class CanvasCompositor {
 
         // future optimization - if top is playing with no opacity effect, don't load the ones below?
         for (const { clip, clipTime } of activeClips) {
+            // TODO: video pool is not generated to match the clip
             const video = this.videoPool.get(clip.mediaNodeId);
             if (!video) continue;
             if (!VideoElementPoolPresenter.isReady(video)) continue;
