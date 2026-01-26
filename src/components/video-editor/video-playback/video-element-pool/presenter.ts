@@ -23,6 +23,10 @@ export class VideoElementPoolPresenter {
         return this.state.videos.has(mediaNodeId);
     }
 
+    get size(): number {
+        return this.state.videos.size;
+    }
+
     addVideoToPool = (id: string, videoElement: HTMLVideoElement) => {
         this.state.videos.set(id, videoElement);
     }
