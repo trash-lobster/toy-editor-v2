@@ -7,6 +7,7 @@ export class CanvasCompositor {
     state: CanvasCompositorState;
     videoPool: VideoElementPoolPresenter;
     canvasPresenter: CanvasPresenter;
+    // offscreenCanvas: OffscreenCanvas;
 
     constructor(
         state: CanvasCompositorState,
@@ -19,55 +20,101 @@ export class CanvasCompositor {
     }
 
     setCanvas = (canvas: HTMLCanvasElement | null) => {
-        console.log(canvas);
         this.state.canvasRef = canvas;
         if (canvas) {
             this.state.ctx = canvas.getContext('2d', {
                 alpha: false,
                 desynchronized: true
             });
+
+            this.state.offscreenCanvas = new OffscreenCanvas(canvas.width, canvas.height);
+            this.state.offScnCtx = this.state.offscreenCanvas.getContext('2d');
         }
     }
 
-    render(currentTime: number) {
-        const { canvasRef, ctx } = this.state;
-        if (!ctx || !canvasRef) return;
-        
-        console.log('renderng:', currentTime);
+    /**
+     * @param isPlaying Determines if the clip should be playing when rendering. It should not play if it's a scrubbing motion
+     */
+    render(currentTime: number, isPlaying: boolean = false) {
+        const { canvasRef, ctx, offScnCtx, offscreenCanvas } = this.state;
+        if (!ctx || !canvasRef || !offScnCtx || !offscreenCanvas) return;
 
         const activeClips = this.canvasPresenter.getCellsAtGlobalTime(currentTime);
-        
-        // Clear canvas when there are no active clips (gaps in timeline)
+
         if (!activeClips?.length) {
+            // Clear to black when no clips
             ctx.fillStyle = '#000000';
             ctx.fillRect(0, 0, canvasRef.width, canvasRef.height);
+
             return;
         }
         
-        // Sort by track (visually top track should be drawn at the top)
         activeClips.sort((a, b) => b.clipIndex - a.clipIndex);
 
-        // future optimization - if top is playing with no opacity effect, don't load the ones below?
+        // Track if any video is seeking or if we drew anything
+        let anyVideoSeeking = false;
+        let anyVideoDrawn = false;
+
+        // Clear offscreen buffer
+        offScnCtx.fillStyle = '#000000';
+        offScnCtx.fillRect(0, 0, offscreenCanvas.width, offscreenCanvas.height);
+
         for (const { clip, clipTime } of activeClips) {
-            // TODO: video pool is not generated to match the clip
             const video = this.videoPool.get(clip.mediaNodeId);
             if (!video) continue;
             if (!VideoElementPoolPresenter.isReady(video)) continue;
 
-            // Calculate local time with trim offset
+            // Skip drawing if video is currently seeking (causes flicker)
+            if (video.seeking) {
+                anyVideoSeeking = true;
+                continue;
+            }
+
             const trimStart = clip.trimStart || 0;
             const localTime = clipTime + trimStart;
 
-            // Seek video
-            this.videoPool.seek(video, localTime, 0.1);
+            if (isPlaying) {
+                // During playback: let video play naturally
+                if (video.paused) {
+                    video.currentTime = localTime;
+                    video.play().catch(() => {}); // Ignore autoplay errors
+                    continue; // Skip this frame, wait for play to start
+                }
+                
+                const drift = video.currentTime - localTime;
+                if (Math.abs(drift) > 0.2) {
+                    // Large drift - hard sync (will cause a brief seek)
+                    video.currentTime = localTime;
+                } else {
+                    video.playbackRate = 1.0;
+                }
+            } else {
+                // When paused/scrubbing: seek to frame
+                if (!video.paused) {
+                    video.pause();
+                }
+                const drift = Math.abs(video.currentTime - localTime);
+                if (drift > 0.05) {
+                    this.videoPool.seek(video, localTime, 0.01); // ~1 frame tolerance
+                    // Don't draw while seeking
+                    if (video.seeking) {
+                        anyVideoSeeking = true;
+                        continue;
+                    }
+                }
+            }
 
-            // Draw video
-            this.drawVideoFit(ctx, video, canvasRef.width, canvasRef.height);
+            this.drawVideoFit(offScnCtx, video, canvasRef.width, canvasRef.height);
+            anyVideoDrawn = true;
+        }
+
+        if (anyVideoDrawn || !anyVideoSeeking) {
+            ctx.drawImage(offscreenCanvas, 0, 0);
         }
     }
 
     private drawVideoFit(
-        ctx: CanvasRenderingContext2D,
+        ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
         video: HTMLVideoElement,
         canvasWidth: number,
         canvasHeight: number
@@ -97,7 +144,7 @@ export class CanvasCompositor {
         ctx.drawImage(video, offsetX, offsetY, drawWidth, drawHeight);
     }
 
-    resizeCanvas(width: number, height: number, aspectRatio: string = '16:9') {
+    resizeCanvas = (width: number, height: number, aspectRatio: string = '16:9') => {
         const { canvasRef } = this.state;
         if (!canvasRef) return;
 
@@ -105,12 +152,27 @@ export class CanvasCompositor {
         const ratio = w / h;
         const containerAspect = width / height;
 
+        let newWidth: number;
+        let newHeight: number;
+
         if (containerAspect > ratio) {
-            canvasRef.height = height;
-            canvasRef.width = height * ratio;
+            newHeight = Math.floor(height * window.devicePixelRatio);
+            newWidth = Math.floor(newHeight * ratio);
         } else {
-            canvasRef.width = width;
-            canvasRef.height = width / ratio;
+            newWidth = Math.floor(width * window.devicePixelRatio);
+            newHeight = Math.floor(newWidth / ratio);
+        }
+
+        // Only resize if dimensions actually changed
+        if (canvasRef.width !== newWidth || canvasRef.height !== newHeight) {
+            canvasRef.width = newWidth;
+            canvasRef.height = newHeight;
+
+            // Also resize the offscreen canvas to match
+            if (this.state.offscreenCanvas) {
+                this.state.offscreenCanvas = new OffscreenCanvas(newWidth, newHeight);
+                this.state.offScnCtx = this.state.offscreenCanvas.getContext('2d');
+            }
         }
     }
 

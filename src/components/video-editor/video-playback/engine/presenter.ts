@@ -79,7 +79,7 @@ export class PlaybackEngine {
         const totalDuration = this.virtualTimelineState.totalDuration;
         this.virtualTimelineState.currentTime = Math.max(0, Math.min(time, totalDuration));
         
-        this.compositor.render(this.virtualTimelineState.currentTime);
+        this.compositor.render(this.virtualTimelineState.currentTime, false);
     };
 
     /**
@@ -102,13 +102,13 @@ export class PlaybackEngine {
             this.virtualTimelineState.currentTime = totalDuration;
             this.pause();
             
-            this.compositor.render(totalDuration);
+            this.compositor.render(totalDuration, false);
             return;
         }
 
         this.virtualTimelineState.currentTime = newTime;
 
-        this.compositor.render(newTime);
+        this.compositor.render(newTime, true);
 
         this.rafId = requestAnimationFrame(this.tick);
     };

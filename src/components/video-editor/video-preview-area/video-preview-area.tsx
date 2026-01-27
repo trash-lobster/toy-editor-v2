@@ -1,11 +1,13 @@
 import { Upload } from "lucide-react";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useCallback } from "react";
 import type { Node } from "../../canvas/state";
 
 interface VideoPreviewProps {
     setCanvas: (canvas: HTMLCanvasElement | null) => void;
+    resizeCanvas: (width: number, height: number, aspectRatio?: string) => void;
     seek: (currentTime: number) => void;
     nodes: readonly Node[];
+    aspectRatio?: string;
     handleFileUpload: (e: React.ChangeEvent<HTMLInputElement>, fileInputRef: React.RefObject<HTMLInputElement | null>) => 
         Promise<{
             status: string;
@@ -15,27 +17,61 @@ interface VideoPreviewProps {
 // we should switch whenever there are nodes added
 export function VideoPreviewArea({
     setCanvas,
+    resizeCanvas,
     seek,
     handleFileUpload, 
-    nodes
+    nodes,
+    aspectRatio = '16:9'
 }: VideoPreviewProps) {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const canvasRef = useRef<HTMLCanvasElement>(null);
+    const containerRef = useRef<HTMLDivElement>(null);
 
     const canPlay = nodes && nodes.length > 0;
+
+    // Handle canvas resize when container size changes
+    const handleResize = useCallback(() => {
+        if (!containerRef.current || !canvasRef.current) return;
+        const { width, height } = containerRef.current.getBoundingClientRect();
+        if (width > 0 && height > 0) {
+            resizeCanvas(width, height, aspectRatio);
+        }
+    }, [resizeCanvas, aspectRatio]);
 
     useEffect(() => {
         if (!canvasRef.current) return;
         // set the canvas whenever we can play clips
         setCanvas(canvasRef.current);
-        // seek(0);
-    }, [canvasRef, setCanvas, seek, canPlay]);
+        // Initial resize
+        handleResize();
+    }, [canvasRef, setCanvas, seek, canPlay, handleResize]);
+
+    // ResizeObserver to handle container size changes
+    useEffect(() => {
+        if (!containerRef.current) return;
+        
+        const resizeObserver = new ResizeObserver(() => {
+            handleResize();
+        });
+        
+        resizeObserver.observe(containerRef.current);
+        
+        return () => {
+            resizeObserver.disconnect();
+        };
+    }, [handleResize, canPlay]);
 
     if (canPlay) {
         return (
-            <div className="video-preview-area">
+            <div className="video-preview-area" ref={containerRef}>
                 <canvas
                     ref={canvasRef}
+                    style={{
+                        maxWidth: '100%',
+                        maxHeight: '100%',
+                        display: 'block',
+                        margin: 'auto',
+                    }}
                 />
             </div>
         )
