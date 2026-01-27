@@ -56,6 +56,7 @@ export interface SceneEditorCell {
     duration?: number; // Clip duration in seconds
     trimStart?: number; // Seconds trimmed from source start
     trimEnd?: number; // Seconds trimmed from source end
+    trackId: number;
 }
 
 export interface SceneEditor {

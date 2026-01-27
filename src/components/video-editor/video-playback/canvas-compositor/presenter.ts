@@ -1,4 +1,5 @@
 import type { CanvasPresenter } from "../../../canvas/presenter";
+import type { ClipEffects } from "../../../canvas/state";
 import { VideoElementPoolPresenter } from "../video-element-pool/presenter";
 import type { CanvasCompositorState } from "./state";
 
@@ -104,13 +105,86 @@ export class CanvasCompositor {
                 }
             }
 
-            this.drawVideoFit(offScnCtx, video, canvasRef.width, canvasRef.height);
+            const track = this.canvasPresenter.getTrack(clip.trackId);
+            if (!track) {
+                this.drawVideoFit(offScnCtx, video, canvasRef.width, canvasRef.height, );
+            } else {
+                const effects = track.effects || {};
+                this.drawVideoWithEffects(offScnCtx, video, canvasRef.width, canvasRef.height, effects);
+            }
             anyVideoDrawn = true;
         }
 
         if (anyVideoDrawn || !anyVideoSeeking) {
             ctx.drawImage(offscreenCanvas, 0, 0);
         }
+    }
+
+    private buildFilterString(effects: ClipEffects): string {
+        const filters: string[] = [];
+
+        if (effects.brightness !== undefined && effects.brightness !== 1) {
+            filters.push(`brightness(${effects.brightness})`);
+        }
+        if (effects.contrast !== undefined && effects.contrast !== 1) {
+            filters.push(`contrast(${effects.contrast})`);
+        }
+        if (effects.saturation !== undefined && effects.saturation !== 1) {
+            filters.push(`saturate(${effects.saturation})`);
+        }
+
+        return filters.length > 0 ? filters.join(' ') : 'none';
+    }
+
+    private drawVideoWithEffects(
+        ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
+        video: HTMLVideoElement,
+        canvasWidth: number,
+        canvasHeight: number,
+        effects: ClipEffects
+    ) {
+        const videoWidth = video.videoWidth;
+        const videoHeight = video.videoHeight;
+        if (!videoWidth || !videoHeight) return;
+
+        ctx.save();
+
+        // Apply opacity
+        ctx.globalAlpha = effects.opacity ?? 1;
+
+        // Apply blend mode
+        ctx.globalCompositeOperation = 'source-over';
+
+        // Apply CSS filters (brightness, contrast, saturation, hue, etc.)
+        ctx.filter = this.buildFilterString(effects);
+
+        // Calculate base fit dimensions
+        const canvasAspect = canvasWidth / canvasHeight;
+        const videoAspect = videoWidth / videoHeight;
+
+        let drawWidth, drawHeight, offsetX, offsetY;
+
+        if (videoAspect > canvasAspect) {
+            drawHeight = canvasHeight;
+            drawWidth = drawHeight * videoAspect;
+            offsetX = (canvasWidth - drawWidth) / 2;
+            offsetY = 0;
+        } else {
+            drawWidth = canvasWidth;
+            drawHeight = drawWidth / videoAspect;
+            offsetX = 0;
+            offsetY = (canvasHeight - drawHeight) / 2;
+        }
+
+        ctx.drawImage(
+            video,
+            offsetX,
+            offsetY,
+            drawWidth,
+            drawHeight
+        );
+
+        ctx.restore();
     }
 
     private drawVideoFit(

@@ -299,6 +299,7 @@ export class CanvasPresenter {
             duration,
             trimStart: 0,
             trimEnd: 0,
+            trackId,
         };
 
         cells.push(newCell);
@@ -374,7 +375,7 @@ export class CanvasPresenter {
         const cells = track.cells;
         const index = cells.findIndex(c => c.id === clipId);
         if (index !== -1) {
-            cells[index] = { ...cells[index], startTime: newStartTime };
+            cells[index] = { ...cells[index], startTime: newStartTime, trackId };
         }
 
         // Sort cells by start time
@@ -404,6 +405,7 @@ export class CanvasPresenter {
 
         // Add to target track with new start time
         cell.startTime = newStartTime;
+        cell.trackId = targetTrackId;
         targetTrack.cells.push(cell);
 
         // Sort target track cells by start time
