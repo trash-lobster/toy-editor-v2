@@ -4,9 +4,17 @@ interface TimelineControlsProps {
     tracks?: number;
     trackHeight: number;
     addTrack: () => void;
+    setAsCurrentTrack: (val : number) => void;
+    currentTrack: number;
 }
 
-export function TimelineControls({ tracks = 0, trackHeight, addTrack }: TimelineControlsProps) {
+export function TimelineControls({ 
+    tracks = 0, 
+    trackHeight, 
+    addTrack,
+    currentTrack,
+    setAsCurrentTrack,
+}: TimelineControlsProps) {
     const isMaxTracks = tracks >= TRACK_LIMIT;
     
     return (
@@ -22,13 +30,19 @@ export function TimelineControls({ tracks = 0, trackHeight, addTrack }: Timeline
                 <div style={{borderRight: '1px solid black'}}>
                     {/* Track labels */}
                     {Array.from({length: tracks}).map((_, trackIndex) => (
-                        <div
+                        <button
                             key={trackIndex}
-                            className="timeline-track-label"
-                            style={{ height: `${trackHeight}px`, }}
+                            className={`timeline-track-label`}
+                            style={{ 
+                                height: `${trackHeight}px`,
+                                cursor: `${currentTrack === trackIndex ? 'default' : 'pointer'}`,
+                                backgroundColor: `${currentTrack === trackIndex ? '#d2d2d2' : 'white'}`,
+                            }}
+                            onClick={() => setAsCurrentTrack(trackIndex)}
+                            disabled={currentTrack === trackIndex}
                         >
                             Track {trackIndex + 1}
-                        </div>
+                        </button>
                     ))}
                 </div>
             </div>

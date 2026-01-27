@@ -31,6 +31,8 @@ export function installTimelineArea(
                         tracks={sceneEditor?.tracks.length} 
                         trackHeight={80}
                         addTrack={addTrack}
+                        setAsCurrentTrack={canvasPresenter.setCurrentTrack}
+                        currentTrack={sceneEditor?.currentTrack ?? 0}
                     />
                     <InternalTimelineCanvas
                         handleClipSelect={presenter.handleClipSelect}

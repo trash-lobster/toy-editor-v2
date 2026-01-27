@@ -47,8 +47,14 @@ export class CanvasPresenter {
 
     getCurrentTrack = () => {
         if (!this.state.sceneEditor) return;
-        
         return this.getTrack(this.state.sceneEditor.currentTrack ?? 0);
+    }
+
+    setCurrentTrack = (trackId: number) => {
+        if (!this.state.sceneEditor) return;
+        const track = this.state.sceneEditor.tracks.filter(track => track.id === trackId)[0];
+        if (!track) return;
+        this.state.sceneEditor.currentTrack = trackId;
     }
 
     addTrack = () => {
