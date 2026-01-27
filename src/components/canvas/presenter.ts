@@ -3,7 +3,7 @@ import { CanvasState, NodeType, type MediaNode, type MediaNodeStatus, type Scene
 import type { VirtualTimelineState } from "../video-editor/state";
 import type { VideoElementPoolPresenter } from "../video-editor/video-playback/video-element-pool/presenter";
 
-export const TRACK_LIMIT = 8;
+export const TRACK_LIMIT = 3;
 
 export class CanvasPresenter {
     state: CanvasState;
@@ -325,7 +325,6 @@ export class CanvasPresenter {
             const mediaNodeId = await this.uploadMedia(file);
             if (mediaNodeId) {
                 this.addMediaToTimeline(mediaNodeId);
-                console.log('Media node id:', mediaNodeId);
                 response.status = 'success';
             }
         }

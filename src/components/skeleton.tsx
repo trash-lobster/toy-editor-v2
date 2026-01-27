@@ -38,7 +38,7 @@ export function Skeleton({
                 <div className="grid h-full w-full" style={{ gridTemplateColumns: getGridColumns() }}>
                     {/* Left Panel - SceneEditor Inspector */}
                     {left && (
-                        <div className="h-full border-r border-filmforge-border-light bg-white flex flex-col">
+                        <div className="h-full border-r bg-white flex flex-col">
                             <Inspector />
                         </div>
                     )}
@@ -50,7 +50,7 @@ export function Skeleton({
 
                     {/* Right Panel - Properties */}
                     {right && (
-                        <div className="h-full border-l border-filmforge-border-light bg-white flex flex-col">
+                        <div className="h-full border-l bg-white flex flex-col">
                             <EffectEditor />
                         </div>
                     )}

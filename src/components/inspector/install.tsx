@@ -8,7 +8,7 @@ export function installInspector(handleFileUpload: (e: React.ChangeEvent<HTMLInp
 } | undefined>) {
     const inspectorState = createInspectorState();
     const setTab = (tab: InspectorTab) => inspectorState.currentTab = tab;
-
+    
     const Inspector = () => {
         const { currentTab } = useSnapshot(inspectorState);
         

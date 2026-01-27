@@ -19,6 +19,8 @@ const tabs: { id: InspectorTab; label: string }[] = [
 
 export function Inspector({currentTab, setTab, handleFileUpload} : InspectorProps) {
     const fileInputRef = useRef<HTMLInputElement>(null);
+
+    console.log('re-rendered');
     
     return (
         <div>
@@ -43,10 +45,7 @@ export function Inspector({currentTab, setTab, handleFileUpload} : InspectorProp
                                     type="file"
                                     accept="video/*,image/*"
                                     multiple
-                                    onChange={async (e) => {
-                                        const response = await handleFileUpload(e, fileInputRef);
-                                        console.log(response);
-                                    }}
+                                    onChange={async (e) => handleFileUpload(e, fileInputRef)}
                                     className="hidden"
                                     id="media-upload"
                                 />

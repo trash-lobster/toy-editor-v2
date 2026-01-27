@@ -109,7 +109,7 @@ function EffectBar({
                 max={max}
                 value={currValue}
                 step={1}
-                className="w-full h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-500"
+                className="w-full h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-black"
                 onChange={(e) => {
                     onChange(parseFloat(e.target.value));
                 }}

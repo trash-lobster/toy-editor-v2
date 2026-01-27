@@ -11,8 +11,7 @@ export function installEffectsEditor(
         const { sceneEditor } = useSnapshot(canvasState);
         
         const currentTrackIdx = sceneEditor?.currentTrack ?? 0;
-        const currentTrack = sceneEditor?.tracks[currentTrackIdx];
-        const effects = currentTrack?.effects ?? {};
+        const effects = sceneEditor?.tracks[currentTrackIdx]?.effects ?? {};
 
         return (
             <InternalEditor
