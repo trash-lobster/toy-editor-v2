@@ -27,7 +27,7 @@ export function installApp() {
 
     const { Header } = installHeader(layoutPresenter.toggleLeft, layoutPresenter.toggleRight);
     const { Inspector } = installInspector(canvasPresenter.handleFileUpload);
-    const { EffectEditor } = installEffectsEditor();
+    const { EffectEditor } = installEffectsEditor(canvasState, canvasPresenter);
     const { VideoEditor } = installVideoEditor(
         canvasState,
         canvasPresenter,

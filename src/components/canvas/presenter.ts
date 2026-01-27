@@ -45,11 +45,67 @@ export class CanvasPresenter {
         return this.state.sceneEditor.tracks.filter(track => track.id === trackId)[0];
     }
 
+    getCurrentTrack = () => {
+        if (!this.state.sceneEditor) return;
+        
+        return this.getTrack(this.state.sceneEditor.currentTrack ?? 0);
+    }
+
     addTrack = () => {
         if (!this.state.sceneEditor) return;
         if (this.state.sceneEditor.tracks.length >= TRACK_LIMIT) return;
         const newId = this.state.sceneEditor.tracks.length;
-        this.state.sceneEditor.tracks.push({ id: newId, cells: [], });
+        this.state.sceneEditor.tracks.push({ 
+            id: newId, 
+            cells: [], 
+            effects: {
+                opacity: 1,
+                brightness: 1,
+                contrast: 1,
+                saturation: 1,
+            }
+        });
+    }
+
+    // update effects
+    setOpacity = (newVal: number) => {
+        if (!this.state.sceneEditor) return;
+        
+        const track = this.getTrack(this.state.sceneEditor.currentTrack ?? 0);
+        
+        if (!track || !track.effects) return;
+        track.effects.opacity = newVal;
+        console.log(track.effects);
+    }
+
+    setBrightness = (newVal: number) => {
+        if (!this.state.sceneEditor) return;
+        
+        const track = this.getTrack(this.state.sceneEditor.currentTrack ?? 0);
+        
+        if (!track || !track.effects) return;
+        track.effects.brightness = newVal;
+        console.log(track.effects);
+    }
+
+    setContrast = (newVal: number) => {
+        if (!this.state.sceneEditor) return;
+        
+        const track = this.getTrack(this.state.sceneEditor.currentTrack ?? 0);
+        
+        if (!track || !track.effects) return;
+        track.effects.contrast = newVal;
+        console.log(track.effects);
+    }
+
+    setSaturation = (newVal: number) => {
+        if (!this.state.sceneEditor) return;
+        
+        const track = this.getTrack(this.state.sceneEditor.currentTrack ?? 0);
+        
+        if (!track || !track.effects) return;
+        track.effects.saturation = newVal;
+        console.log(track.effects);
     }
 
     private getEffectiveDuration = (cell: SceneEditorCell): number => {
@@ -102,39 +158,9 @@ export class CanvasPresenter {
                     );
                 }
             }
-
-            // check if we are adding that last clip of the track
-            // if (clampedTime >= totalDuration && cells.length > 0) {
-            //     const lastClip = cells[cells.length - 1];
-            //     const lastClipStartTime = lastClip.startTime || 0;
-            //     const lastClipDuration = this.getEffectiveDuration(lastClip); // ✅ Use effective duration
-    
-            //     return {
-            //         clip: lastClip,
-            //         clipTime: lastClipDuration, // At the very end of the last clip
-            //         clipIndex: cells.length - 1,
-            //         clipStartTime: lastClipStartTime,
-            //         clipEndTime: lastClipStartTime + lastClipDuration
-            //     };
-            // }
         }
         return clips;
     }
-
-    // clipPositionToGlobalTime(clipIndex: number, clipTime: number): number {
-    //     if (clipIndex < 0 || clipIndex >= this.cells.length) {
-    //         return 0;
-    //     }
-
-    //     const cell = this.cells[clipIndex];
-    //     const startTime = cell.startTime || 0;
-    //     const effectiveDuration = this.getEffectiveDuration(cell); // ✅ Use effective duration
-
-    //     // Clamp clip time to valid range within this clip
-    //     const clampedClipTime = Math.max(0, Math.min(clipTime, effectiveDuration));
-
-    //     return startTime + clampedClipTime;
-    // }
 
     private calculateTrackEnd = (trackId: number) => {
         const track = this.getTrack(trackId);

@@ -34,7 +34,17 @@ export type Node = MediaNode;
 
 export interface MediaTrack {
     id: number, // should simply by their track idx for now
-    cells: SceneEditorCell[], // keeps a note of the sceneEditorCell by their id   
+    cells: SceneEditorCell[], // keeps a note of the sceneEditorCell by their id
+    effects?: ClipEffects,
+}
+
+export interface ClipEffects {
+    opacity?: number;           // 0-1 (default: 1)
+    
+    // Color adjustments (CSS filter values)
+    brightness?: number;        // 0-2+ (default: 1, where 1 = no change)
+    contrast?: number;          // 0-2+ (default: 1)
+    saturation?: number;        // 0-2+ (default: 1, where 0 = grayscale)
 }
 
 export interface SceneEditorCell {
@@ -51,6 +61,7 @@ export interface SceneEditorCell {
 export interface SceneEditor {
     tracks: MediaTrack[];
     aspectRatio: string; // Default "16:9"
+    currentTrack?: number; // default to 0
     zoom?: number; // Zoom level (1.0 = normal)
 }
 
@@ -75,7 +86,19 @@ export class CanvasState {
         this.sceneEditor = {
             aspectRatio: '16:9',
             zoom: 1.0,
-            tracks: [ { id: 0, cells: [], } ],
+            currentTrack: 0,
+            tracks: [ 
+                { 
+                    id: 0, 
+                    cells: [],
+                    effects: {
+                        opacity: 1,
+                        brightness: 1,
+                        contrast: 1,
+                        saturation: 1,
+                    }
+                } 
+            ],
         }
     }
 }
