@@ -71,6 +71,7 @@ export function TimelineCanvas({
                 >
                     {tracks.map((track: ReadonlyMediaTrack) => (
                         <TimelineContent
+                            key={`track-${track.id}`}
                             nodeMap={nodeMap}
                             pixelsPerSecond={pixelsPerSecond}
                             trackHeight={trackHeight}

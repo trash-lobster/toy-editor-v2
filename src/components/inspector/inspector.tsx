@@ -20,8 +20,6 @@ const tabs: { id: InspectorTab; label: string }[] = [
 export function Inspector({currentTab, setTab, handleFileUpload} : InspectorProps) {
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    console.log('re-rendered');
-    
     return (
         <div>
             <div className='flex gap-4 items-middle justify-center py-4 border-b'>

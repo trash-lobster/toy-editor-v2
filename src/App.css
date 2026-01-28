@@ -53,6 +53,14 @@
     right: 2rem;
 }
 
+.video-playback-panel-button {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    gap: 2;
+    white-space: nowrap;
+}
+
 .timeline-controls {
     width: 10%;
     min-width: 120px;

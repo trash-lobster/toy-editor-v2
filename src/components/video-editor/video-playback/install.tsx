@@ -1,5 +1,5 @@
 import { useSnapshot } from "valtio/react";
-import { VideoPlaybackPanel as InternalVideoPlayback } from "./video-playback";
+import { VideoPlaybackButtons, TimeDisplay } from "./video-playback";
 import type { VirtualTimelineState } from "../state";
 import type { PlaybackController } from "./engine/presenter";
 
@@ -9,16 +9,24 @@ export function installVideoPlaybackPanel(
 ) {    
     const VideoPlaybackPanel = () => {
         const { isPlaying, currentTime, totalDuration } = useSnapshot(virtualTimelinestate);
-        
+        const disableSkipPrevious = currentTime <= 0;
+        const disableSkipNext = currentTime >= totalDuration;
+
         return (
-            <InternalVideoPlayback
-                isPlaying={isPlaying}
-                globalTime={currentTime}
-                totalDuration={totalDuration}
-                onSkipNext={playbackController.skipForward}
-                onSkipPrevious={playbackController.skipBackward}
-                onTogglePlayback={playbackController.togglePlayback}
-            />
+            <div className="video-playback-panel">
+                <VideoPlaybackButtons
+                    isPlaying={isPlaying}
+                    disableSkipNext={disableSkipNext}
+                    disableSkipPrevious={disableSkipPrevious}
+                    onSkipNext={playbackController.skipForward}
+                    onSkipPrevious={playbackController.skipBackward}
+                    onTogglePlayback={playbackController.togglePlayback}
+                />
+                <TimeDisplay
+                    globalTime={currentTime}
+                    totalDuration={totalDuration}
+                />
+            </div>
         );
     };
     

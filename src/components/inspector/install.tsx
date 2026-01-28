@@ -3,9 +3,12 @@ import { Inspector as InternalInspector } from "./inspector";
 import { createInspectorState, type InspectorTab } from "./state";
 
 
-export function installInspector(handleFileUpload: (e: React.ChangeEvent<HTMLInputElement>, fileInputRef: React.RefObject<HTMLInputElement | null>) => Promise<{
-    status: string;
-} | undefined>) {
+export function installInspector(
+    handleFileUpload: (
+        e: React.ChangeEvent<HTMLInputElement>, 
+        fileInputRef: React.RefObject<HTMLInputElement | null>
+    ) => Promise<{status: string;} | undefined>
+) {
     const inspectorState = createInspectorState();
     const setTab = (tab: InspectorTab) => inspectorState.currentTab = tab;
     
@@ -13,7 +16,11 @@ export function installInspector(handleFileUpload: (e: React.ChangeEvent<HTMLInp
         const { currentTab } = useSnapshot(inspectorState);
         
         return (
-            <InternalInspector currentTab={currentTab} setTab={setTab} handleFileUpload={handleFileUpload}/>
+            <InternalInspector 
+                currentTab={currentTab} 
+                setTab={setTab} 
+                handleFileUpload={handleFileUpload}
+            />
         );
     };
     
