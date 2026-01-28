@@ -1,16 +1,16 @@
 import type { VirtualTimelineState } from "../../state";
 import type { VideoElementPoolPresenter } from "../video-element-pool/presenter";
-import type { CanvasCompositor } from "../canvas-compositor/presenter";
+import type { VideoCompositor } from "../canvas-compositor/presenter";
 import type { CanvasPresenter } from "../../../canvas/presenter";
 
 /**
- * PlaybackEngine manages the video playback loop using requestAnimationFrame.
- * Coordinates VideoElementPool and CanvasCompositor to render multi-track video.
+ * PlaybackController manages the video playback loop.
+ * Coordinates VideoElementPool and VideoCompositor to render multi-track video.
  */
-export class PlaybackEngine {
+export class PlaybackController {
     virtualTimelineState: VirtualTimelineState;
     videoPool: VideoElementPoolPresenter;
-    compositor: CanvasCompositor;
+    compositor: VideoCompositor;
     canvasPresenter: CanvasPresenter;
 
     rafId: number | null = null;
@@ -19,7 +19,7 @@ export class PlaybackEngine {
     constructor(
         virtualTimelineState: VirtualTimelineState,
         videoPool: VideoElementPoolPresenter,
-        compositor: CanvasCompositor,
+        compositor: VideoCompositor,
         canvasPresenter: CanvasPresenter
     ) {
         this.virtualTimelineState = virtualTimelineState;
@@ -37,8 +37,9 @@ export class PlaybackEngine {
 
         this.virtualTimelineState.isPlaying = true;
        
-        // Initialize RAF loop
+        // Initialize time tracking
         this.lastFrameTime = performance.now();
+        
         this.tick(this.lastFrameTime);
     };
 
@@ -54,7 +55,6 @@ export class PlaybackEngine {
             this.rafId = null;
         }
         
-        // Pause all video elements to free decoder resources
         this.videoPool.pauseAll();
     };
 
@@ -64,10 +64,8 @@ export class PlaybackEngine {
     togglePlayback = (): void => {
         if (this.virtualTimelineState.isPlaying) {
             this.pause();
-            console.log('pausing');
         } else {
             this.play();
-            console.log('playing');
         }
     };
 
@@ -78,13 +76,11 @@ export class PlaybackEngine {
     seek = (time: number): void => {
         const totalDuration = this.virtualTimelineState.totalDuration;
         this.virtualTimelineState.currentTime = Math.max(0, Math.min(time, totalDuration));
-        
-        this.compositor.render(this.virtualTimelineState.currentTime, false);
     };
 
     /**
      * Main animation loop tick.
-     * Called by requestAnimationFrame at ~60fps.
+     * Updates timeline time and renders frame.
      */
     private tick = (timestamp: number): void => {
         if (!this.virtualTimelineState.isPlaying) {
@@ -101,33 +97,16 @@ export class PlaybackEngine {
         if (newTime >= totalDuration) {
             this.virtualTimelineState.currentTime = totalDuration;
             this.pause();
-            
-            this.compositor.render(totalDuration, false);
+            this.compositor.renderFrame(totalDuration, false);
             return;
         }
 
         this.virtualTimelineState.currentTime = newTime;
-
-        this.compositor.render(newTime, true);
+        
+        // Render the current frame
+        this.compositor.renderPlayback(newTime);
 
         this.rafId = requestAnimationFrame(this.tick);
-    };
-
-    /**
-     * Preload all videos in the timeline.
-     * Should be called after uploading media or when timeline changes.
-     */
-    preloadVideos = async (): Promise<void> => {
-        const nodes = this.canvasPresenter.getNodes();
-        const videoNodes = nodes.filter(node => node.type === 'video');
-
-        const results = await this.videoPool.loadBatch(videoNodes);
-        
-        if (results.failed.length > 0) {
-            console.error(`Failed to preload ${results.failed.length} videos:`, results.failed);
-        }
-        
-        console.log(`✅ Preloaded ${results.loaded.length} videos`);
     };
 
     /**

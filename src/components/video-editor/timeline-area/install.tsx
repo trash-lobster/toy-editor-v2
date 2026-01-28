@@ -6,7 +6,7 @@ import type { CanvasState } from "../../canvas/state";
 import { TimelinePresenter } from "./presenter";
 import type { CanvasPresenter } from "../../canvas/presenter";
 import type { VirtualTimelineState } from "../state";
-import type { PlaybackEngine } from "../video-playback/engine/presenter";
+import type { PlaybackController } from "../video-playback/engine/presenter";
 
 
 export function installTimelineArea(
@@ -14,7 +14,7 @@ export function installTimelineArea(
     addTrack: () => void,
     canvasPresenter: CanvasPresenter,
     virtualTimelineState: VirtualTimelineState,
-    playbackEngine: PlaybackEngine,
+    playbackController: PlaybackController,
 ) {
     const timelineState = createTimelineState();
     const presenter = new TimelinePresenter(timelineState);
@@ -48,7 +48,7 @@ export function installTimelineArea(
                         nodes={nodes}
                         tracks={sceneEditor?.tracks}
                         currentTime={currentTime}
-                        onSeek={playbackEngine.seek}
+                        onSeek={playbackController.seek}
                     />
                 </div>
             </div>

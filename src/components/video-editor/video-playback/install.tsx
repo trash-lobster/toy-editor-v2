@@ -1,10 +1,10 @@
 import { useSnapshot } from "valtio/react";
 import { VideoPlaybackPanel as InternalVideoPlayback } from "./video-playback";
 import type { VirtualTimelineState } from "../state";
-import type { PlaybackEngine } from "./engine/presenter";
+import type { PlaybackController } from "./engine/presenter";
 
 export function installVideoPlaybackPanel(
-    playbackEngine: PlaybackEngine, // enables play back etc.
+    playbackController: PlaybackController, // enables play back etc.
     virtualTimelinestate: VirtualTimelineState,
 ) {    
     const VideoPlaybackPanel = () => {
@@ -15,9 +15,9 @@ export function installVideoPlaybackPanel(
                 isPlaying={isPlaying}
                 globalTime={currentTime}
                 totalDuration={totalDuration}
-                onSkipNext={playbackEngine.skipForward}
-                onSkipPrevious={playbackEngine.skipBackward}
-                onTogglePlayback={playbackEngine.togglePlayback}
+                onSkipNext={playbackController.skipForward}
+                onSkipPrevious={playbackController.skipBackward}
+                onTogglePlayback={playbackController.togglePlayback}
             />
         );
     };

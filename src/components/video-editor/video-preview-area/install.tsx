@@ -1,8 +1,8 @@
 import { VideoPreviewArea as InternalVideoPreviewArea } from "./video-preview-area";
 import type { CanvasState } from "../../canvas/state";
 import { useSnapshot } from "valtio";
-import type { CanvasCompositor } from "../video-playback/canvas-compositor/presenter";
-import type { PlaybackEngine } from "../video-playback/engine/presenter";
+import type { VideoCompositor } from "../video-playback/canvas-compositor/presenter";
+import type { PlaybackController } from "../video-playback/engine/presenter";
 
 export function installVideoPreviewArea(
     handleFileUpload: (
@@ -10,8 +10,8 @@ export function installVideoPreviewArea(
         fileInputRef: React.RefObject<HTMLInputElement | null>
     ) => Promise<{status: string} | undefined>,
     canvasState: CanvasState,
-    compositor: CanvasCompositor,
-    engine: PlaybackEngine,
+    compositor: VideoCompositor,
+    controller: PlaybackController,
 ) {
     const VideoPreviewArea = () => {
         const { nodes, sceneEditor } = useSnapshot(canvasState);
@@ -22,7 +22,7 @@ export function installVideoPreviewArea(
                 nodes={nodes}
                 setCanvas={compositor.setCanvas}
                 resizeCanvas={compositor.resizeCanvas}
-                seek={engine.seek}
+                seek={controller.seek}
                 aspectRatio={sceneEditor?.aspectRatio}
             />
         );

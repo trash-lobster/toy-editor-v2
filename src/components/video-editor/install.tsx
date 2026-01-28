@@ -5,10 +5,10 @@ import { installTimelineArea } from "./timeline-area/install";
 import { VideoEditor as InnerEditor } from "./video-editor"
 import { installVideoPlaybackPanel } from "./video-playback/install";
 import { installVideoPreviewArea } from "./video-preview-area/install"
-import { PlaybackEngine } from "./video-playback/engine/presenter";
+import { PlaybackController } from "./video-playback/engine/presenter";
 import { VideoElementPoolPresenter } from "./video-playback/video-element-pool/presenter";
 import { createCanvasCompositor } from "./video-playback/canvas-compositor/state";
-import { CanvasCompositor } from "./video-playback/canvas-compositor/presenter";
+import { VideoCompositor } from "./video-playback/canvas-compositor/presenter";
 
 export function installVideoEditor(
     canvasState: CanvasState,
@@ -21,27 +21,27 @@ export function installVideoEditor(
         fileInputRef: React.RefObject<HTMLInputElement | null>
     ) => Promise<{status: string} | undefined>
 ) {
-    const canvasCompositor = new CanvasCompositor(createCanvasCompositor(), videoPoolPresenter, canvasPresenter);
-    const playbackEngine = new PlaybackEngine(
+    const videoCompositor = new VideoCompositor(createCanvasCompositor(), videoPoolPresenter, canvasPresenter);
+    const playbackController = new PlaybackController(
         virtualTimelineState,
         videoPoolPresenter,
-        canvasCompositor,
+        videoCompositor,
         canvasPresenter,
     );
 
     const { VideoPreviewArea } = installVideoPreviewArea(
         handleFileUpload, 
         canvasState,
-        canvasCompositor,
-        playbackEngine,
+        videoCompositor,
+        playbackController,
     );
-    const { VideoPlaybackPanel } = installVideoPlaybackPanel(playbackEngine, virtualTimelineState);
+    const { VideoPlaybackPanel } = installVideoPlaybackPanel(playbackController, virtualTimelineState);
     const { TimelineArea } = installTimelineArea(
         canvasState, 
         addTrack,
         canvasPresenter,
         virtualTimelineState,
-        playbackEngine,
+        playbackController,
     );
 
 

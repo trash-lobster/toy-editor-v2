@@ -3,13 +3,18 @@ import type { ClipEffects } from "../../../canvas/state";
 import { VideoElementPoolPresenter } from "../video-element-pool/presenter";
 import type { CanvasCompositorState } from "./state";
 
-// canvas-compositor/presenter.ts
-export class CanvasCompositor {
+/**
+ * VideoCompositor - Hybrid multi-track video compositing
+ * 
+ * Two modes:
+ * 1. PLAYBACK: Videos play natively for smooth motion. We just composite
+ *    whatever frame each video currently has. Sync correction only for large drifts.
+ * 2. SCRUBBING: Frame-accurate seeking - wait for all videos to seek before drawing.
+ */
+export class VideoCompositor {
     state: CanvasCompositorState;
     videoPool: VideoElementPoolPresenter;
     canvasPresenter: CanvasPresenter;
-    private pendingSeekRender: number | null = null;
-    private seekedHandlers: Map<HTMLVideoElement, () => void> = new Map();
 
     constructor(
         state: CanvasCompositorState,
@@ -25,47 +30,15 @@ export class CanvasCompositor {
         this.state.canvasRef = canvas;
         if (canvas) {
             this.state.ctx = canvas.getContext('2d', {
-                alpha: false, // to allow multitrack videos to overlay on top of each other
-                desynchronized: true
+                alpha: false,
             });
         }
     }
 
     /**
-     * Schedule a re-render when a video finishes seeking.
-     * Uses a one-time event listener to avoid memory leaks.
+     * Render during playback - videos play natively for smooth motion
      */
-    private scheduleRenderOnSeeked(video: HTMLVideoElement, currentTime: number): void {
-        // Remove any existing handler for this video
-        const existingHandler = this.seekedHandlers.get(video);
-        if (existingHandler) {
-            video.removeEventListener('seeked', existingHandler);
-        }
-
-        const handler = () => {
-            video.removeEventListener('seeked', handler);
-            this.seekedHandlers.delete(video);
-            
-            // Cancel any pending render frame
-            if (this.pendingSeekRender !== null) {
-                cancelAnimationFrame(this.pendingSeekRender);
-            }
-            
-            // Schedule render on next animation frame
-            this.pendingSeekRender = requestAnimationFrame(() => {
-                this.pendingSeekRender = null;
-                this.render(currentTime, false);
-            });
-        };
-
-        this.seekedHandlers.set(video, handler);
-        video.addEventListener('seeked', handler, { once: true });
-    }
-
-    /**
-     * @param isPlaying Determines if the clip should be playing when rendering. It should not play if it's a scrubbing motion
-     */
-    render(currentTime: number, isPlaying: boolean = false) {
+    renderPlayback(currentTime: number): void {
         const { canvasRef, ctx } = this.state;
         if (!ctx || !canvasRef) return;
 
@@ -79,63 +52,122 @@ export class CanvasCompositor {
         
         activeClips.sort((a, b) => b.clipIndex - a.clipIndex);
 
-        let anyDrawn = false;
+        const videosToRender: Array<{
+            video: HTMLVideoElement;
+            clip: typeof activeClips[0]['clip'];
+        }> = [];
 
         for (const { clip, clipTime } of activeClips) {
             const video = this.videoPool.get(clip.mediaNodeId);
             if (!video) continue;
             if (!VideoElementPoolPresenter.isReady(video)) continue;
 
-            // Skip drawing if video is currently seeking (causes flicker)
+            const trimStart = clip.trimStart || 0;
+            const localTime = clipTime + trimStart;
+
+            if (video.paused) {
+                video.currentTime = localTime;
+                video.play().catch(() => {});
+                continue;
+            }
+            
             if (video.seeking) {
                 continue;
             }
 
+            // Only correct large drifts (> 500ms) to avoid stuttering
+            const drift = video.currentTime - localTime;
+            if (Math.abs(drift) > 0.5) {
+                video.currentTime = localTime;
+                continue;
+            }
+
+            videosToRender.push({ video, clip });
+        }
+
+        if (videosToRender.length === 0) return;
+
+        // Draw all videos with their current frames - no waiting
+        this.compositeFrame(ctx, canvasRef, videosToRender);
+    }
+
+    /**
+     * Render when scrubbing/seeking (frame-accurate)
+     */
+    renderFrame(currentTime: number, isPlaying: boolean = false): void {
+        if (isPlaying) return;
+        
+        const { canvasRef, ctx } = this.state;
+        if (!ctx || !canvasRef) return;
+
+        const activeClips = this.canvasPresenter.getCellsAtGlobalTime(currentTime);
+
+        if (!activeClips?.length) {
+            ctx.fillStyle = '#000000';
+            ctx.fillRect(0, 0, canvasRef.width, canvasRef.height);
+            return;
+        }
+        
+        activeClips.sort((a, b) => b.clipIndex - a.clipIndex);
+
+        // Collect videos
+        const videosToRender: Array<{
+            video: HTMLVideoElement;
+            clip: typeof activeClips[0]['clip'];
+        }> = [];
+        
+        let allReady = true;
+
+        for (const { clip, clipTime } of activeClips) {
+            const video = this.videoPool.get(clip.mediaNodeId);
+            if (!video) continue;
+            if (!VideoElementPoolPresenter.isReady(video)) continue;
+
             const trimStart = clip.trimStart || 0;
             const localTime = clipTime + trimStart;
 
-            if (isPlaying) {
-                // During playback: let video play naturally
-                if (video.paused) {
-                    video.currentTime = localTime;
-                    video.play().catch(() => {}); // Ignore autoplay errors
-                    continue; // Skip this frame, wait for play to start
-                }
-                
-                const drift = video.currentTime - localTime;
-                if (Math.abs(drift) > 0.2) {
-                    // Large drift - hard sync (will cause a brief seek)
-                    video.currentTime = localTime;
-                    if (video.seeking) {
-                        this.scheduleRenderOnSeeked(video, currentTime);
-                        continue;
-                    }
-                }
-            } else {
-                // When paused/scrubbing: seek to frame
-                if (!video.paused) {
-                    video.pause();
-                }
-                const drift = Math.abs(video.currentTime - localTime);
-                if (drift > 0.05) {
-                    this.videoPool.seek(video, localTime, 0.01); // ~1 frame tolerance
-                    // Don't draw while seeking - schedule re-render when seek completes
-                    if (video.seeking) {
-                        this.scheduleRenderOnSeeked(video, currentTime);
-                        continue;
-                    }
-                }
+            if (!video.paused) {
+                video.pause();
             }
 
-            if (!anyDrawn) {
-                ctx.fillStyle = '#000000';
-                ctx.fillRect(0, 0, canvasRef.width, canvasRef.height);
-                anyDrawn = true;
+            // Seek to target time if needed
+            const drift = Math.abs(video.currentTime - localTime);
+            if (drift > 0.04) {
+                video.currentTime = localTime;
+            }
+            
+            if (video.seeking) {
+                allReady = false;
+                video.addEventListener('seeked', () => {
+                    // only render when seek is complete
+                    this.renderFrame(currentTime, false);
+                }, { once: true });
             }
 
+            videosToRender.push({ video, clip });
+        }
+
+        // Skip render unless it is ready
+        if (!allReady || videosToRender.length === 0) return;
+
+        this.compositeFrame(ctx, canvasRef, videosToRender);
+    }
+    
+    /**
+     * Composite all videos onto the canvas
+     */
+    private compositeFrame(
+        ctx: CanvasRenderingContext2D,
+        canvasRef: HTMLCanvasElement,
+        videosToRender: Array<{ video: HTMLVideoElement; clip: { trackId: number } }>
+    ): void {
+        ctx.fillStyle = '#000000';
+        ctx.fillRect(0, 0, canvasRef.width, canvasRef.height);
+
+        for (const { video, clip } of videosToRender) {
             const track = this.canvasPresenter.getTrack(clip.trackId);
             if (!track) {
-                this.drawVideoFit(ctx, video, canvasRef.width, canvasRef.height,);
+                this.drawVideoFit(ctx, video, canvasRef.width, canvasRef.height);
             } else {
                 const effects = track.effects || {};
                 this.drawVideoWithEffects(ctx, video, canvasRef.width, canvasRef.height, effects);
@@ -172,16 +204,10 @@ export class CanvasCompositor {
 
         ctx.save();
 
-        // Apply opacity
         ctx.globalAlpha = effects.opacity ?? 1;
-
-        // Apply blend mode
         ctx.globalCompositeOperation = 'source-over';
-
-        // Apply CSS filters (brightness, contrast, saturation, hue, etc.)
         ctx.filter = this.buildFilterString(effects);
 
-        // Calculate base fit dimensions
         const canvasAspect = canvasWidth / canvasHeight;
         const videoAspect = videoWidth / videoHeight;
 
