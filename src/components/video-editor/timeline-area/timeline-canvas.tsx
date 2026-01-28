@@ -2,6 +2,7 @@ import { useRef, useMemo } from "react";
 import type { Node, SceneEditorCell } from "../../canvas/state";
 import { TimelineRuler } from "./ruler";
 import { TimelineContent } from "./timeline-content";
+import { Playhead } from "./timeline-playhead";
 
 export type ReadonlyMediaTrack = {
     readonly id: number;
@@ -19,6 +20,8 @@ interface TimelineCanvasProps {
     originalTrackId: number,
     currentDragTrackId: number,
     nodes: readonly Node[],
+    currentTime: number,
+    onSeek: (time: number) => void,
 }
 
 export function TimelineCanvas({
@@ -32,6 +35,8 @@ export function TimelineCanvas({
     dragPreviewOffset,
     originalTrackId,
     currentDragTrackId,
+    currentTime,
+    onSeek,
 }: TimelineCanvasProps) {
     const timelineRef = useRef<HTMLDivElement>(null);
 
@@ -53,6 +58,13 @@ export function TimelineCanvas({
                     width={timelineWidth} 
                     pixelsPerSecond={pixelsPerSecond} 
                     totalDuration={totalDuration}
+                />
+                <Playhead
+                    currentTime={currentTime}
+                    totalDuration={totalDuration}
+                    pixelsPerSecond={pixelsPerSecond}
+                    timelineWidth={timelineWidth}
+                    onSeek={onSeek}
                 />
                 <div ref={timelineRef} className='relative flex flex-col z-[1] min-w-full'
                     style={{ width: `${timelineWidth}px` }}

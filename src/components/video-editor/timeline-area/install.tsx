@@ -6,6 +6,7 @@ import type { CanvasState } from "../../canvas/state";
 import { TimelinePresenter } from "./presenter";
 import type { CanvasPresenter } from "../../canvas/presenter";
 import type { VirtualTimelineState } from "../state";
+import type { PlaybackEngine } from "../video-playback/engine/presenter";
 
 
 export function installTimelineArea(
@@ -13,6 +14,7 @@ export function installTimelineArea(
     addTrack: () => void,
     canvasPresenter: CanvasPresenter,
     virtualTimelineState: VirtualTimelineState,
+    playbackEngine: PlaybackEngine,
 ) {
     const timelineState = createTimelineState();
     const presenter = new TimelinePresenter(timelineState);
@@ -20,7 +22,7 @@ export function installTimelineArea(
     
     const TimelineArea = () => {
         const { selectedClipId, isDragging, dragPreviewOffset, originalTrackId, currentDragTrackId } = useSnapshot(timelineState);
-        const { totalDuration } = useSnapshot(virtualTimelineState);
+        const { totalDuration, currentTime } = useSnapshot(virtualTimelineState);
         const { nodes, sceneEditor } = useSnapshot(canvasState);
 
         return (
@@ -45,6 +47,8 @@ export function installTimelineArea(
                         currentDragTrackId={currentDragTrackId}
                         nodes={nodes}
                         tracks={sceneEditor?.tracks}
+                        currentTime={currentTime}
+                        onSeek={playbackEngine.seek}
                     />
                 </div>
             </div>

@@ -31,6 +31,7 @@ export function TimelineRuler({width, pixelsPerSecond, totalDuration} : RulerPro
                             left: `${time * pixelsPerSecond}px`,
                             color: '#888',
                             borderLeft: '1px solid #888',
+                            userSelect: 'none',
                         }}
                     >
                         {time}s

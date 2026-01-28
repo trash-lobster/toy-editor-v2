@@ -41,6 +41,7 @@ export function installVideoEditor(
         addTrack,
         canvasPresenter,
         virtualTimelineState,
+        playbackEngine,
     );
 
 

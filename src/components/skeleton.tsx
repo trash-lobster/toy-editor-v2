@@ -29,26 +29,20 @@ export function Skeleton({
     
     return (
         <div className="h-screen w-full overflow-hidden relative flex flex-col">
-            {/* Top Header */}
             <Header />
 
-            {/* Main Content Area */}
             <div className="flex-1 flex">
-                {/* Dynamic Layout based on panel visibility */}
                 <div className="grid h-full w-full" style={{ gridTemplateColumns: getGridColumns() }}>
-                    {/* Left Panel - SceneEditor Inspector */}
                     {left && (
                         <div className="h-full border-r bg-white flex flex-col">
                             <Inspector />
                         </div>
                     )}
 
-                    {/* SceneEditor Area - Center - Always present */}
                     <div className="h-full bg-filmforge-background overflow-hidden">
                         <VideoEditor />
                     </div>
 
-                    {/* Right Panel - Properties */}
                     {right && (
                         <div className="h-full border-l bg-white flex flex-col">
                             <EffectEditor />

@@ -70,7 +70,8 @@
     height: 100%;
     display: flex;
     flex-direction: column;
-    position: relative; 
+    position: relative;
+    user-select: none;
 }
 
 .timeline-area {
@@ -131,4 +132,56 @@
     background-color: white;
     z-index: 2;
     min-width: 100%;
+}
+
+/* Playhead styles */
+.playhead-container {
+    position: absolute;
+    top: 30px; /* Below the ruler */
+    left: 10px;
+    height: calc(100% - 30px);
+    z-index: 10;
+    cursor: pointer;
+    pointer-events: none;
+}
+
+.playhead-indicator {
+    position: absolute;
+    top: 0;
+    height: 100%;
+    pointer-events: none;
+    transform: translateX(-50%);
+}
+
+.playhead-handle {
+    width: 0;
+    height: 0;
+    border-left: 8px solid transparent;
+    border-right: 8px solid transparent;
+    border-top: 10px solid #ff4444;
+    position: absolute;
+    top: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    cursor: grab;
+    pointer-events: auto;
+}
+
+.playhead-handle:hover {
+    border-top-color: #ff6666;
+}
+
+.playhead-handle:active {
+    cursor: grabbing;
+}
+
+.playhead-line {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 2px;
+    height: 100%;
+    background-color: #ff4444;
+    pointer-events: none;
 }
