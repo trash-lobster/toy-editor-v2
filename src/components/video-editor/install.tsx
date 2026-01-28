@@ -33,7 +33,6 @@ export function installVideoEditor(
         handleFileUpload, 
         canvasState,
         videoCompositor,
-        playbackController,
     );
     const { VideoPlaybackPanel } = installVideoPlaybackPanel(playbackController, virtualTimelineState);
     const { TimelineArea } = installTimelineArea(

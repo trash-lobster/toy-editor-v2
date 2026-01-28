@@ -5,7 +5,6 @@ import type { Node } from "../../canvas/state";
 interface VideoPreviewProps {
     setCanvas: (canvas: HTMLCanvasElement | null) => void;
     resizeCanvas: (width: number, height: number, aspectRatio?: string) => void;
-    seek: (currentTime: number) => void;
     nodes: readonly Node[];
     aspectRatio?: string;
     handleFileUpload: (e: React.ChangeEvent<HTMLInputElement>, fileInputRef: React.RefObject<HTMLInputElement | null>) => 
@@ -18,7 +17,6 @@ interface VideoPreviewProps {
 export function VideoPreviewArea({
     setCanvas,
     resizeCanvas,
-    seek,
     handleFileUpload, 
     nodes,
     aspectRatio = '16:9'
@@ -44,7 +42,7 @@ export function VideoPreviewArea({
         setCanvas(canvasRef.current);
         // Initial resize
         handleResize();
-    }, [canvasRef, setCanvas, seek, canPlay, handleResize]);
+    }, [setCanvas, canPlay, handleResize]);
 
     // ResizeObserver to handle container size changes
     useEffect(() => {
