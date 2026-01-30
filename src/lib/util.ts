@@ -30,3 +30,12 @@ export function debounce<T extends (...args: Parameters<T>) => ReturnType<T>>(
 	};
 }
 
+export function inferVideoMime (file: File) {
+  if (file.type) return file.type;
+  const name = file.name.toLowerCase();
+  if (name.endsWith('.mp4')) return 'video/mp4';
+  if (name.endsWith('.mov')) return 'video/quicktime';
+  if (name.endsWith('.webm')) return 'video/webm';
+  if (name.endsWith('.ogv') || name.endsWith('.ogg')) return 'video/ogg';
+  return 'video/mp4';
+};

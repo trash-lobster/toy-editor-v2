@@ -2,6 +2,7 @@ import { proxy } from "valtio";
 import { CanvasState, NodeType, type MediaNode, type MediaNodeStatus, type SceneEditorCell } from "./state"
 import type { VirtualTimelineState } from "../video-editor/state";
 import type { VideoElementPoolPresenter } from "../video-editor/video-playback/video-element-pool/presenter";
+import { inferVideoMime } from "../../lib/util";
 
 export const TRACK_LIMIT = 3;
 
@@ -210,26 +211,48 @@ export class CanvasPresenter {
     uploadMedia = async (file: File) => {
         const nodeId = `node-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
         const blobUrl = URL.createObjectURL(file);
-
+        
         // Determine if image or video
         const isVideo = file.type.startsWith('video/');
         const nodeType = isVideo ? NodeType.VIDEO : NodeType.IMAGE;
-
+        
         // Get dimensions and duration
         let width: number | undefined;
         let height: number | undefined;
         let duration: number | undefined;
-
+        
         if (isVideo) {
             // Get video metadata
             const video = document.createElement('video');
-            video.src = blobUrl;
-            await new Promise((resolve) => {
+            console.log('canPlayType:', video.canPlayType('video/quicktime'));
+            const source = document.createElement('source');
+            const mime = inferVideoMime(file);
+            source.type = mime;
+            source.src = blobUrl;
+            video.appendChild(source);
+
+            const support = video.canPlayType(mime);
+            if (!support) {
+                // try a few fallbacks (won't help if the actual file codec isn't supported)
+                const fallbacks = ['video/mp4', 'video/webm', 'video/quicktime', 'video/ogg'];
+                for (const fb of fallbacks) {
+                if (fb === mime) continue;
+                if (video.canPlayType(fb)) {
+                    source.type = fb;
+                    break;
+                }
+                }
+            }
+
+            await new Promise((resolve, reject) => {
                 video.onloadedmetadata = () => {
                     width = video.videoWidth;
                     height = video.videoHeight;
                     duration = video.duration;
                     resolve(null);
+                };
+                video.onerror = () => {
+                reject(new Error('Video failed to load metadata — likely unsupported codec.'));
                 };
             });
 
