@@ -28,6 +28,9 @@ export class VideoElementPoolPresenter {
     }
 
     addVideoToPool = (id: string, videoElement: HTMLVideoElement) => {
+        videoElement.preload = videoElement.preload || 'auto';
+        videoElement.muted = true;
+        videoElement.playsInline = true;
         this.state.videos.set(id, videoElement);
     }
 

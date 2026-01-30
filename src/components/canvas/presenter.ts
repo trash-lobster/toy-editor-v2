@@ -224,12 +224,15 @@ export class CanvasPresenter {
         if (isVideo) {
             // Get video metadata
             const video = document.createElement('video');
-            console.log('canPlayType:', video.canPlayType('video/quicktime'));
             const source = document.createElement('source');
             const mime = inferVideoMime(file);
             source.type = mime;
             source.src = blobUrl;
             video.appendChild(source);
+
+            video.preload = 'metadata';
+            video.muted = true;
+            video.playsInline = true;
 
             const support = video.canPlayType(mime);
             if (!support) {
@@ -244,6 +247,8 @@ export class CanvasPresenter {
                 }
             }
 
+            video.load();
+
             await new Promise((resolve, reject) => {
                 video.onloadedmetadata = () => {
                     width = video.videoWidth;
@@ -252,7 +257,7 @@ export class CanvasPresenter {
                     resolve(null);
                 };
                 video.onerror = () => {
-                reject(new Error('Video failed to load metadata — likely unsupported codec.'));
+                    reject(new Error('Video failed to load metadata — likely unsupported codec.'));
                 };
             });
 
