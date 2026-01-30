@@ -10,6 +10,7 @@ export class TimelineState {
     originalTrackId: number = 0;
     dragPreviewOffset: number = 0;
     currentDragTrackId: number = 0;
+    wasPlayingBeforeDrag: boolean = false;
 }
 
 export function createTimelineState() {

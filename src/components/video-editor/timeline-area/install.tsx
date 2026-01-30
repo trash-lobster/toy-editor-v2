@@ -17,8 +17,7 @@ export function installTimelineArea(
     playbackController: PlaybackController,
 ) {
     const timelineState = createTimelineState();
-    const presenter = new TimelinePresenter(timelineState);
-    presenter.setCanvasPresenter(canvasPresenter);
+    const presenter = new TimelinePresenter(timelineState, canvasPresenter, playbackController);
     
     const TimelineArea = () => {
         const { selectedClipId, isDragging, dragPreviewOffset, originalTrackId, currentDragTrackId } = useSnapshot(timelineState);

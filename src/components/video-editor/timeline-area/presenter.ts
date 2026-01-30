@@ -1,17 +1,17 @@
 import type { TimelineState } from "./state";
 import type { CanvasPresenter } from "../../canvas/presenter";
+import type { PlaybackController } from "../video-playback/engine/presenter";
 
 export class TimelinePresenter {
     state: TimelineState;
     canvasPresenter: CanvasPresenter | null = null;
+    playbackController: PlaybackController | null = null;
     trackHeight: number = 80;
 
-    constructor(state: TimelineState) {
+    constructor(state: TimelineState, canvasPresenter: CanvasPresenter, playbackController: PlaybackController) {
         this.state = state;
-    }
-
-    setCanvasPresenter(canvasPresenter: CanvasPresenter) {
         this.canvasPresenter = canvasPresenter;
+        this.playbackController = playbackController;
     }
 
     setTrackHeight(trackHeight: number) {
@@ -28,6 +28,12 @@ export class TimelinePresenter {
 
     handleDragStart = (event: React.MouseEvent, startTime: number, cellId: string, trackId: number, duration: number, pixelsPerSecond: number, trackHeight: number) => {
         if (!this.canvasPresenter) return;
+
+        const wasPlaying = this.playbackController?.virtualTimelineState.isPlaying ?? false;
+        this.state.wasPlayingBeforeDrag = wasPlaying;
+        if (wasPlaying) {
+            this.playbackController?.pause();
+        }
 
         this.state.isDragging = true;
         this.state.dragStartX = event.clientX;
@@ -90,7 +96,12 @@ export class TimelinePresenter {
                     canvasPresenter.moveClip(cellId, finalStartTime, targetTrackId);
                 }
             }
-            // else: invalid drop, clip returns to original position automatically (no state change)
+            
+            // restart play after drag completes
+            if (this.state.wasPlayingBeforeDrag && this.playbackController) {
+                this.playbackController.play();
+                this.state.wasPlayingBeforeDrag = false;
+            }
 
             // Reset drag preview and deselect clip
             this.state.dragPreviewOffset = 0;
