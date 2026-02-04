@@ -11,6 +11,14 @@ export class TimelineState {
     dragPreviewOffset: number = 0;
     currentDragTrackId: number = 0;
     wasPlayingBeforeDrag: boolean = false;
+    // Trimming state
+    isTrimming: boolean = false;
+    trimmingSide: 'left' | 'right' | null = null;
+    trimmingClipId: string | null = null;
+    originalTrimStart: number = 0;
+    originalTrimEnd: number = 0;
+    trimStartClientX: number = 0;
+    wasPlayingBeforeTrim: boolean = false;
 }
 
 export function createTimelineState() {

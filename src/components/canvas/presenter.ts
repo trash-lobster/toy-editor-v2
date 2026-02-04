@@ -10,6 +10,7 @@ export class CanvasPresenter {
     state: CanvasState;
     timelineState: VirtualTimelineState;
     videoPoolPresenter: VideoElementPoolPresenter;
+    _offscreenContainer: HTMLElement | null = null;
 
     constructor(state: CanvasState, timelineState: VirtualTimelineState, videoPoolPresenter: VideoElementPoolPresenter) {
         this.state = state;
@@ -115,6 +116,26 @@ export class CanvasPresenter {
         console.log(track.effects);
     }
 
+    ensureOffscreenContainer = () => {
+        if (this._offscreenContainer) return this._offscreenContainer;
+        const c = document.createElement('div');
+        c.id = 'video-offscreen-container';
+        Object.assign(c.style, {
+            position: 'fixed',
+            left: '-10000px',
+            top: '-10000px',
+            width: '1px',
+            height: '1px',
+            overflow: 'hidden',
+            pointerEvents: 'none',
+            opacity: '0',
+            zIndex: '-1',
+        });
+        document.body.appendChild(c);
+        this._offscreenContainer = c;
+        return c;
+    }
+
     private getEffectiveDuration = (cell: SceneEditorCell): number => {
         const originalDuration = cell.duration || 0;
         const trimStart = cell.trimStart || 0;
@@ -132,7 +153,7 @@ export class CanvasPresenter {
             for (let j = 0; j < cells.length; j++) {
                 const cell = cells[j];
                 const effectiveDuration = this.getEffectiveDuration(cell);
-                const startTime = cell.startTime || 0;
+                const startTime = cell.startTime || 0 + (cell.trimStart || 0);
                 const endTime = startTime + effectiveDuration;
             
                 const epsilon = 0.001;
@@ -222,7 +243,6 @@ export class CanvasPresenter {
         let duration: number | undefined;
         
         if (isVideo) {
-            // Get video metadata
             const video = document.createElement('video');
             const source = document.createElement('source');
             const mime = inferVideoMime(file);
@@ -230,7 +250,7 @@ export class CanvasPresenter {
             source.src = blobUrl;
             video.appendChild(source);
 
-            video.preload = 'metadata';
+            video.preload = 'auto';
             video.muted = true;
             video.playsInline = true;
 
@@ -250,7 +270,7 @@ export class CanvasPresenter {
             video.load();
 
             await new Promise((resolve, reject) => {
-                video.onloadedmetadata = () => {
+                video.onloadeddata = () => {
                     width = video.videoWidth;
                     height = video.videoHeight;
                     duration = video.duration;

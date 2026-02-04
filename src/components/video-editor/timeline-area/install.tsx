@@ -38,6 +38,7 @@ export function installTimelineArea(
                     <InternalTimelineCanvas
                         handleClipSelect={presenter.handleClipSelect}
                         handleDragStart={presenter.handleDragStart}
+                        handleTrimStart={presenter.handleTrimStart}
                         totalDuration={totalDuration}
                         selectedClipId={selectedClipId}
                         isDragging={isDragging}

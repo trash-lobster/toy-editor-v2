@@ -114,4 +114,76 @@ export class TimelinePresenter {
         document.addEventListener('mousemove', handleMouseMove);
         document.addEventListener('mouseup', handleMouseUp);
     }
+
+    handleTrimStart = (event: React.MouseEvent, side: 'left' | 'right', cellId: string, trackId: number, pixelsPerSecond: number) => {
+        if (!this.canvasPresenter) return;
+
+        const track = this.canvasPresenter.getTrack(trackId);
+        if (!track) return;
+
+        const clip = track.cells.find(c => c.id === cellId);
+        if (!clip) return;
+
+        const MIN_CLIP_LENGTH = 0.1;
+
+        const wasPlaying = this.playbackController?.virtualTimelineState.isPlaying ?? false;
+        this.state.wasPlayingBeforeTrim = wasPlaying;
+        if (wasPlaying) this.playbackController?.pause();
+
+        this.state.isTrimming = true;
+        this.state.trimmingSide = side;
+        this.state.trimmingClipId = cellId;
+        this.state.trimStartClientX = event.clientX;
+        this.state.originalTrimStart = clip.trimStart || 0;
+        this.state.originalTrimEnd = clip.trimEnd || 0;
+
+        let rafId: number | null = null;
+
+        const handleMouseMove = (e: MouseEvent) => {
+            if (!this.state.isTrimming) return;
+            if (rafId) return;
+
+            rafId = requestAnimationFrame(() => {
+                const deltaX = e.clientX - this.state.trimStartClientX;
+                const deltaSec = deltaX / pixelsPerSecond;
+
+                const sourceDuration = clip.duration || 0;
+
+                if (side === 'left') {
+                    let candidate = this.state.originalTrimStart + deltaSec;
+                    const maxTrim = Math.max(0, sourceDuration - this.state.originalTrimEnd - MIN_CLIP_LENGTH);
+                    const newTrimStart = Math.max(0, Math.min(candidate, maxTrim));
+                    this.canvasPresenter?.updateClip(cellId, { trimStart: newTrimStart }, trackId);
+                } else {
+                    // right side
+                    let candidate = this.state.originalTrimEnd - deltaSec;
+                    const maxTrim = Math.max(0, sourceDuration - this.state.originalTrimStart - MIN_CLIP_LENGTH);
+                    const newTrimEnd = Math.max(0, Math.min(candidate, maxTrim));
+                    this.canvasPresenter?.updateClip(cellId, { trimEnd: newTrimEnd }, trackId);
+                }
+
+                rafId = null;
+            });
+        };
+
+        const handleMouseUp = () => {
+            if (rafId) cancelAnimationFrame(rafId);
+
+            this.state.isTrimming = false;
+            this.state.trimmingSide = null;
+            this.state.trimmingClipId = null;
+            this.state.trimStartClientX = 0;
+
+            if (this.state.wasPlayingBeforeTrim && this.playbackController) {
+                this.playbackController.play();
+                this.state.wasPlayingBeforeTrim = false;
+            }
+
+            document.removeEventListener('mousemove', handleMouseMove);
+            document.removeEventListener('mouseup', handleMouseUp);
+        };
+
+        document.addEventListener('mousemove', handleMouseMove);
+        document.addEventListener('mouseup', handleMouseUp);
+    }
 }

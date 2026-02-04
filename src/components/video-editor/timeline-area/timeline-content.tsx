@@ -7,6 +7,7 @@ interface Props {
     nodeMap: Map<string, Node>,
     handleClipSelect: (cellId: string, trackId: number, onClipSelect?: (cellId: string, trackId: number) => void) => void,
     handleDragStart: (event: React.MouseEvent, startTime: number, cellId: string, trackId: number, duration: number, pixelsPerSecond: number, trackHeight: number) => void,
+    handleTrimStart: (event: React.MouseEvent, side: 'left' | 'right', cellId: string, trackId: number, pixelsPerSecond: number) => void,
     selectedClipId: string | null,
     isDragging: boolean,
     dragPreviewOffset: number,
@@ -22,6 +23,7 @@ export function TimelineContent({
     nodeMap,
     handleClipSelect,
     handleDragStart,
+    handleTrimStart,
     isDragging,
     selectedClipId,
     pixelsPerSecond,
@@ -64,6 +66,8 @@ export function TimelineContent({
                             onDragStart={(cellId, trackId, event) => 
                                 handleDragStart(event, cell.startTime || 0, cellId, trackId, effectiveDuration, pixelsPerSecond, trackHeight)
                             }
+                            onTrimStartLeft={(cellId, trackId, e) => handleTrimStart(e, 'left', cellId, track.id, pixelsPerSecond)}
+                            onTrimStartRight={(cellId, trackId, e) => handleTrimStart(e, 'right', cellId, track.id, pixelsPerSecond)}
                         />
                     );
                 })}

@@ -14,6 +14,8 @@ interface TimelineClipProps {
     currentDragTrackId?: number;
     onSelect?: (cellId: string) => void;
     onDragStart?: (cellId: string, trackId: number, event: React.MouseEvent) => void;
+    onTrimStartLeft?: (cellId: string, trackId: number, event: React.MouseEvent) => void;
+    onTrimStartRight?: (cellId: string, trackId: number, event: React.MouseEvent) => void;
 }
 
 export function TimelineClip({
@@ -29,6 +31,8 @@ export function TimelineClip({
     currentDragTrackId = 0,
     onSelect,
     onDragStart,
+    onTrimStartLeft,
+    onTrimStartRight,
 }: TimelineClipProps) {
     const effectiveDuration = useMemo(() => {
         const duration = cell.duration || 0;
@@ -38,7 +42,7 @@ export function TimelineClip({
     }, [cell.duration, cell.trimStart, cell.trimEnd]);
 
     const clipWidth = effectiveDuration * pixelsPerSecond;
-    const clipLeft = (cell.startTime || 0) * pixelsPerSecond;
+    const clipLeft = (cell.startTime || 0 + (cell.trimStart || 0)) * pixelsPerSecond;
 
     // Calculate vertical offset for track changes
     const verticalOffset = (currentDragTrackId - originalTrackId) * trackHeight;
@@ -52,6 +56,18 @@ export function TimelineClip({
             onDragStart(cell.id, trackId, e);
         }
     };
+
+    const handleTrimLeftMouseDown = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        e.preventDefault();
+        if (onTrimStartLeft) onTrimStartLeft(cell.id, trackId, e);
+    }
+
+    const handleTrimRightMouseDown = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        e.preventDefault();
+        if (onTrimStartRight) onTrimStartRight(cell.id, trackId, e);
+    }
 
     return (
         <div
@@ -76,6 +92,32 @@ export function TimelineClip({
             }}
             onMouseDown={handleMouseDown}
         >
+            {/* Left trim handle */}
+            <div
+                onMouseDown={handleTrimLeftMouseDown}
+                style={{
+                    position: 'absolute',
+                    left: 0,
+                    top: 0,
+                    bottom: 0,
+                    width: '8px',
+                    cursor: 'ew-resize',
+                    background: 'linear-gradient(90deg, rgba(255,255,255,0.06), transparent)',
+                }}
+            />
+            {/* Right trim handle */}
+            <div
+                onMouseDown={handleTrimRightMouseDown}
+                style={{
+                    position: 'absolute',
+                    right: 0,
+                    top: 0,
+                    bottom: 0,
+                    width: '8px',
+                    cursor: 'ew-resize',
+                    background: 'linear-gradient(270deg, rgba(255,255,255,0.06), transparent)',
+                }}
+            />
             <div
                 style={{
                     padding: '4px 8px',

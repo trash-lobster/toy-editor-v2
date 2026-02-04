@@ -1,6 +1,28 @@
 import type { MediaNode } from "../../../canvas/state";
 import type { VideoElementPoolState } from "./state";
 
+let _offscreenContainer: HTMLElement | null = null;
+function ensureOffscreenContainer() {
+    if (_offscreenContainer) return _offscreenContainer;
+    if (typeof document === 'undefined') return null;
+    const c = document.createElement('div');
+    c.id = 'video-offscreen-container';
+    Object.assign(c.style, {
+        position: 'fixed',
+        left: '-10000px',
+        top: '-10000px',
+        width: '1px',
+        height: '1px',
+        overflow: 'hidden',
+        pointerEvents: 'none',
+        opacity: '0',
+        zIndex: '-1',
+    } as Partial<CSSStyleDeclaration>);
+    document.body.appendChild(c);
+    _offscreenContainer = c;
+    return c;
+}
+
 export class VideoElementPoolPresenter {
     state: VideoElementPoolState;
     
@@ -31,6 +53,17 @@ export class VideoElementPoolPresenter {
         videoElement.preload = videoElement.preload || 'auto';
         videoElement.muted = true;
         videoElement.playsInline = true;
+        // Append video to offscreen container so Safari/WebKit will decode
+        // frames even when the element is not visible in the document flow.
+        try {
+            const container = ensureOffscreenContainer();
+            if (container && !videoElement.parentElement) {
+                container.appendChild(videoElement);
+            }
+        } catch (e) {
+            console.error(e);
+        }
+
         this.state.videos.set(id, videoElement);
     }
 
@@ -51,7 +84,7 @@ export class VideoElementPoolPresenter {
         const video = document.createElement('video');
         video.src = mediaNode.data.url;
         video.preload = 'auto';
-        video.muted = true; // Start muted for multi-track testing
+        // video.muted = true; // Start muted for multi-track testing
         video.playsInline = true; // Important for mobile
         
         // Wait for video to be ready
@@ -127,12 +160,8 @@ export class VideoElementPoolPresenter {
 
     dispose(mediaNodeId: string): void {
         const video = this.state.videos.get(mediaNodeId);
-        if (video) {
-            video.pause();
-            video.src = '';
-            video.load(); // Reset video element
-            this.state.videos.delete(mediaNodeId);
-        }
+        this.removeVideo(video);
+        this.state.videos.delete(mediaNodeId);
     }
 
     disposeMultiple(mediaNodeIds: string[]): void {
@@ -141,12 +170,23 @@ export class VideoElementPoolPresenter {
 
     disposeAll(): void {
         this.state.videos.forEach((video) => {
-            if (!video) return;
-            video.pause();
-            video.src = '';
-            video.load();
+            this.removeVideo(video);
         });
         this.state.videos.clear();
+    }
+
+    private removeVideo(video: HTMLVideoElement | null | undefined) {
+        if (!video) return;
+        try {
+            if (video.parentElement) video.parentElement.removeChild(video);
+        } catch (e) {
+            console.error(e);
+        }
+        video.pause();
+        video.src = '';
+        try { 
+            video.load(); 
+        } catch (e) { console.log(e); }
     }
 
     getAllIds(): string[] {

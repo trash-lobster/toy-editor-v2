@@ -12,6 +12,7 @@ export type ReadonlyMediaTrack = {
 interface TimelineCanvasProps {
     handleClipSelect: (cellId: string, trackId: number, onClipSelect?: (cellId: string, trackId: number) => void) => void,
     handleDragStart: (event: React.MouseEvent, startTime: number, cellId: string, trackId: number, duration: number, pixelsPerSecond: number, trackHeight: number) => void,
+    handleTrimStart: (event: React.MouseEvent, side: 'left' | 'right', cellId: string, trackId: number, pixelsPerSecond: number) => void,
     tracks: readonly ReadonlyMediaTrack[] | undefined,
     totalDuration: number,
     selectedClipId: string | null,
@@ -27,6 +28,7 @@ interface TimelineCanvasProps {
 export function TimelineCanvas({
     handleClipSelect,
     handleDragStart,
+    handleTrimStart,
     tracks = [],
     totalDuration = 30,
     nodes,
@@ -80,6 +82,7 @@ export function TimelineCanvas({
                             originalTrackId={originalTrackId}
                             currentDragTrackId={currentDragTrackId}
                             handleDragStart={handleDragStart} 
+                            handleTrimStart={handleTrimStart}
                             handleClipSelect={handleClipSelect}
                             selectedClipId={selectedClipId}
                             track={track}
